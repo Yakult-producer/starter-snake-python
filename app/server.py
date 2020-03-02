@@ -118,6 +118,8 @@ def move():
     #cur_dir=checkCollision(bodys, cur_dir, myHead)
     print("width:"+str(board_width)+", height:"+str(board_height))
     print()
+    print(myHead)
+    print()
     move = directions[cur_dir]
     print(prev)
     print(move)
