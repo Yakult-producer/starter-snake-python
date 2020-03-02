@@ -76,9 +76,11 @@ def move():
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
     cur_dir = prev
+    starve=False
 
     if (myHealth <= 30):
         pos = findFood(foods, myHead)
+        starve=True
         if (prev == 0 or prev == 1):
             if (pos["x"]-myHead["x"] < 0):
                 cur_dir = 2
@@ -89,9 +91,13 @@ def move():
                 cur_dir = 0
             elif (pos["y"]-myHead["y"] > 0):
                 cur_dir = 1
+    else:
+        starve=False
 
-    #cur_dir = checkCollision(snakes, cur_dir, myHead)
-    cur_dir = threeDirChecker(snakes,cur_dir,myHead)
+    if starve:
+        cur_dir = checkCollision(snakes, cur_dir, myHead)
+    else:
+        cur_dir = threeDirChecker(snakes,cur_dir,myHead)
 
     move = directions[cur_dir]
     print(move)
@@ -124,6 +130,7 @@ def findFood(foods, head_pos):
 
 
 def checkSolid(snakes, cur_dir, myHead):
+    #O(n)
     for snake in snakes:
         if cur_dir == 0:
             if myHead["y"]-1 < 0 or {"x": myHead["x"], "y": myHead["y"]-1} in snake["body"]:
@@ -234,15 +241,20 @@ def countEmpty(snakes, cur_dir, myHead):
     if cur_dir == 0 or cur_dir == 1:
         if checkSolid(snakes,2 , myHead):
             count-=1
+            print("solid for second dir")
         if checkSolid(snakes,3,myHead):
             count-=1
+            print("solid for third dir")
     if cur_dir == 2 and cur_dir == 3:
         if checkSolid(snakes,0 , myHead):
             count-=1
+            print("solid for second dir")
         if checkSolid(snakes,1,myHead):
             count-=1
+            print("solid for third dir")
     if checkSolid(snakes,cur_dir,myHead):
             count-=1
+            print("solid ahead")
     return count
 
 
