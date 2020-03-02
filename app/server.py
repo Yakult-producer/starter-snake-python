@@ -119,6 +119,7 @@ def move():
     print(prev)
     print(move)
     prev = cur_dir
+    print(prev)
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
     shout = "I am a python snake!"
