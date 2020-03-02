@@ -13,7 +13,7 @@ board_height = 1
 
 @bottle.route("/")
 def index():
-    return "Your Battlesnake is alive! (or is it?)"
+    return "Your Battlesnake is alive!"
 
 
 @bottle.post("/ping")
@@ -76,9 +76,10 @@ def move():
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
     cur_dir = prev
+    length = len(data["you"]["body"])
     starve=False
 
-    if (myHealth <= 30):
+    if (myHealth <= 30) or length<12:
         pos = findFood(foods, myHead)
         starve=True
         if (prev == 0 or prev == 1):
