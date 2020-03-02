@@ -102,6 +102,11 @@ def move():
     else:
         cur_dir = threeDirChecker(snakes,cur_dir,myHead)
 
+    if (cur_dir == 0 and prev == 1) or (cur_dir ==1 and prev == 0):
+        cur_dir= random.choice(['right', 'left'])
+    elif (cur_dir == 2 and prev == 3) or (cur_dir ==3 and prev == 2):
+        cur_dir= random.choice(['up', 'down'])
+
     move = directions[cur_dir]
     print(move)
     prev = cur_dir
