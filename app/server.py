@@ -134,9 +134,6 @@ def move():
     )
 
 
-def go(bodys,cur_dir,myHead):
-
-
 
 
 
