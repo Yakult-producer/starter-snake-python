@@ -115,7 +115,7 @@ def move():
     # elif (cur_dir == 2 and prev == 3) or (cur_dir ==3 and prev == 2):
     #     cur_dir= random.choice([0, 1])
 
-    cur_dir=checkCollision
+    cur_dir=checkCollision(bodys, cur_dir, myHead)
 
     move = directions[cur_dir]
     print(prev)
