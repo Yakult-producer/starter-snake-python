@@ -75,6 +75,8 @@ def move():
     myHealth = data["you"]["health"]
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
+    body=[]
+    
     cur_dir = prev
     length = len(data["you"]["body"])
     starve=False
@@ -189,7 +191,7 @@ def threeDirChecker(snakes, cur_dir, myHead):
         if cur_dir == 0:
             if not(checkSolid(snakes, cur_dir, myHead)):
                 first = countEmpty(snakes, cur_dir, {"x": myHead["x"], "y": myHead["y"]-1})
-        else:
+        elif cur_dir == 1:
             if not(checkSolid(snakes, cur_dir, myHead)):
                 first = countEmpty(snakes, cur_dir, {"x": myHead["x"], "y": myHead["y"]+1})
         if not (checkSolid(snakes, second_dir, myHead)):
@@ -207,19 +209,23 @@ def threeDirChecker(snakes, cur_dir, myHead):
         if cur_dir == 2:
             if not(checkSolid(snakes, cur_dir, myHead)):
                 first = countEmpty(snakes, cur_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
-        else:
+                print("first :"+str(first)+", first_dir "+str(first_dir))
+        elif cur_dir == 3:
             if not(checkSolid(snakes, cur_dir, myHead)):
                 first = countEmpty(snakes, cur_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
+                print("first :"+str(first)+", first_dir "+str(first_dir))
         if not (checkSolid(snakes, second_dir, myHead)):
             second = countEmpty(snakes, second_dir, {"x": myHead["x"], "y": myHead["y"]-1})
             second_dict = {"x": myHead["x"], "y": myHead["y"]-1}
+            print("second :"+str(second)+", second_dir "+str(second_dir))
         if not (checkSolid(snakes, third_dir, myHead)):
             third = countEmpty(snakes, third_dir, {"x": myHead["x"], "y": myHead["y"]+1})
             third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
+            print("third :"+str(third)+", third_dir "+str(third_dir))
     #test check
-    print("first :"+str(first)+", first_dir"+str(first_dir))
-    print("second :"+str(second)+", second_dir"+str(second_dir))
-    print("third :"+str(third)+", third_dir"+str(third_dir))
+    
+    
+    
 
 
     # compare
@@ -228,12 +234,16 @@ def threeDirChecker(snakes, cur_dir, myHead):
     elif first >= second and first >= third:
         return first_dir
     elif second > third:
+        print("turn :"+str(second_dir))
         return second_dir
     elif third > second:
+        print("turn:"+str(third_dir))
         return third_dir
     elif second == third:
         #do check more
-        return second_dir or third_dir
+        s=random.choice([second_dir, third_dir])
+        print("luck :"+str(s))
+        return s
 
 
 
