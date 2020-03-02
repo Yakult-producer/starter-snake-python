@@ -13,7 +13,7 @@ board_height = 1
 
 @bottle.route("/")
 def index():
-    return "Your Battlesnake is alive!"
+    return "Your Battlesnake is alive! (or is it?)"
 
 
 @bottle.post("/ping")
