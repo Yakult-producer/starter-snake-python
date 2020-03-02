@@ -75,7 +75,12 @@ def move():
     myHealth = data["you"]["health"]
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
-    body=[]
+    bodys=[{'x':3, 'y':1}]
+    for snake in snakes:
+        for body in snake['body']:
+            bodys.append(body)
+
+    print ({'x':3, 'y':1} in bodys)
     
     cur_dir = prev
     length = len(data["you"]["body"])
@@ -89,11 +94,15 @@ def move():
                 cur_dir = 2
             elif (pos["x"]-myHead["x"] > 0):
                 cur_dir = 3
+            else:
+                cur_dir=prev
         else:
             if (pos["y"]-myHead["y"] < 0):
                 cur_dir = 0
             elif (pos["y"]-myHead["y"] > 0):
                 cur_dir = 1
+            else:
+                cur_dir=prev
     else:
         starve=False
 
