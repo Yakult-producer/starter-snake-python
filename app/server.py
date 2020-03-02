@@ -85,37 +85,37 @@ def move():
     length = len(data["you"]["body"])
     starve=False
 
-    # if (myHealth <= 30) or length<12:
-    #     pos = findFood(foods, myHead)
-    #     starve=True
-    #     if (prev == 0 or prev == 1):
-    #         if (pos["x"]-myHead["x"] < 0):
-    #             cur_dir = 2
-    #         elif (pos["x"]-myHead["x"] > 0):
-    #             cur_dir = 3
-    #         else:
-    #             cur_dir=prev
-    #     else:
-    #         if (pos["y"]-myHead["y"] < 0):
-    #             cur_dir = 0
-    #         elif (pos["y"]-myHead["y"] > 0):
-    #             cur_dir = 1
-    #         else:
-    #             cur_dir=prev
-    # else:
-    #     starve=False
+    if (myHealth <= 30) or length<12:
+        pos = findFood(foods, myHead)
+        starve=True
+        if (prev == 0 or prev == 1):
+            if (pos["x"]-myHead["x"] < 0):
+                cur_dir = 2
+            elif (pos["x"]-myHead["x"] > 0):
+                cur_dir = 3
+            else:
+                cur_dir=prev
+        else:
+            if (pos["y"]-myHead["y"] < 0):
+                cur_dir = 0
+            elif (pos["y"]-myHead["y"] > 0):
+                cur_dir = 1
+            else:
+                cur_dir=prev
+    else:
+        starve=False
 
-    # if starve:
-    #     cur_dir = checkCollision(bodys, cur_dir, myHead)
-    # else:
-    #     cur_dir = threeDirChecker(bodys,cur_dir,myHead)
+    if starve:
+        cur_dir = checkCollision(bodys, cur_dir, myHead)
+    else:
+        cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
-    # if (cur_dir == 0 and prev == 1) or (cur_dir ==1 and prev == 0):
-    #     cur_dir= random.choice([2, 3])
-    # elif (cur_dir == 2 and prev == 3) or (cur_dir ==3 and prev == 2):
-    #     cur_dir= random.choice([0, 1])
+    if (cur_dir == 0 and prev == 1) or (cur_dir ==1 and prev == 0):
+        cur_dir= random.choice([2, 3])
+    elif (cur_dir == 2 and prev == 3) or (cur_dir ==3 and prev == 2):
+        cur_dir= random.choice([0, 1])
 
-    cur_dir=checkCollision(bodys, cur_dir, myHead)
+    #cur_dir=checkCollision(bodys, cur_dir, myHead)
 
     move = directions[cur_dir]
     print(prev)
