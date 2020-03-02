@@ -63,8 +63,8 @@ def move():
     Your response must include your move of up, down, left, or right.
     """
     data = bottle.request.json
-    print("MOVE:", json.dumps(data))
-    print()
+    # print("MOVE:", json.dumps(data))
+    # print()
 
     directions = ["up", "down", "left", "right"]
     global prev
@@ -116,7 +116,8 @@ def move():
         cur_dir= random.choice([0, 1])
 
     #cur_dir=checkCollision(bodys, cur_dir, myHead)
-
+    print("width:"+str(board_width)+", height:"+str(board_height))
+    print()
     move = directions[cur_dir]
     print(prev)
     print(move)
