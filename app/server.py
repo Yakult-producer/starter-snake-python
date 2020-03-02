@@ -75,12 +75,11 @@ def move():
     myHealth = data["you"]["health"]
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
-    bodys=[{'x':3, 'y':1}]
+    bodys=[]
     for snake in snakes:
         for body in snake['body']:
             bodys.append(body)
 
-    print ({'x':3, 'y':1} in bodys)
     
     cur_dir = prev
     length = len(data["you"]["body"])
@@ -107,9 +106,9 @@ def move():
         starve=False
 
     if starve:
-        cur_dir = checkCollision(snakes, cur_dir, myHead)
+        cur_dir = checkCollision(bodys, cur_dir, myHead)
     else:
-        cur_dir = threeDirChecker(snakes,cur_dir,myHead)
+        cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
     if (cur_dir == 0 and prev == 1) or (cur_dir ==1 and prev == 0):
         cur_dir= random.choice([2, 3])
@@ -147,25 +146,24 @@ def findFood(foods, head_pos):
     return pos
 
 
-def checkSolid(snakes, cur_dir, myHead):
+def checkSolid(bodys, cur_dir, myHead):
     #O(n)
-    for snake in snakes:
-        if cur_dir == 0:
-            if myHead["y"]-1 < 0 or {"x": myHead["x"], "y": myHead["y"]-1} in snake["body"]:
-                return True
-        if cur_dir == 1:
-            if myHead["y"]+1 >= board_height or {"x": myHead["x"], "y": myHead["y"]+1} in snake["body"]:
-                return True
-        if cur_dir == 2:
-            if myHead["x"]-1 < 0 or {"x": myHead["x"]-1, "y": myHead["y"]} in snake["body"]:
-                return True
-        if cur_dir == 3:
-            if myHead["x"]+1 >= board_width or {"x": myHead["x"]+1, "y": myHead["y"]} in snake["body"]:
-                return True
+    if cur_dir == 0:
+        if myHead["y"]-1 < 0 or {"x": myHead["x"], "y": myHead["y"]-1} in bodys:
+            return True
+    if cur_dir == 1:
+        if myHead["y"]+1 >= board_height or {"x": myHead["x"], "y": myHead["y"]+1} in bodys:
+            return True
+    if cur_dir == 2:
+        if myHead["x"]-1 < 0 or {"x": myHead["x"]-1, "y": myHead["y"]} in bodys:
+            return True
+    if cur_dir == 3:
+        if myHead["x"]+1 >= board_width or {"x": myHead["x"]+1, "y": myHead["y"]} in bodys:
+            return True
     return False
 
 
-def checkCollision(snakes, cur_dir, myHead):
+def checkCollision(bodys, cur_dir, myHead):
     up = 0
     down = 1
     left = 2
@@ -175,22 +173,22 @@ def checkCollision(snakes, cur_dir, myHead):
     """
     old checker
     """
-    if checkSolid(snakes, cur_dir, myHead):
-        temp=threeDirChecker(snakes,cur_dir,myHead)
+    if checkSolid(bodys, cur_dir, myHead):
+        temp=threeDirChecker(bodys,cur_dir,myHead)
     if (temp == 0 and prev == 1) or (temp == 1 and prev == 0):
-        if not(checkSolid(snakes, left, myHead) and prev != right):
+        if not(checkSolid(bodys, left, myHead) and prev != right):
             temp = left
-        elif not(checkSolid(snakes, right, myHead) and prev != left):
+        elif not(checkSolid(bodys, right, myHead) and prev != left):
             temp = right
     elif (temp == 2 and prev == 3) or (temp == 3 and prev == 2):
-        if not(checkSolid(snakes, up, myHead) and prev != down):
+        if not(checkSolid(bodys, up, myHead) and prev != down):
             temp = up
-        elif not(checkSolid(snakes, down, myHead) and prev != up):
+        elif not(checkSolid(bodys, down, myHead) and prev != up):
             temp = down
     return temp
 
 
-def threeDirChecker(snakes, cur_dir, myHead):
+def threeDirChecker(bodys, cur_dir, myHead):
     """
     3 dir checker
     """
@@ -204,16 +202,16 @@ def threeDirChecker(snakes, cur_dir, myHead):
         second_dir = 2
         third_dir = 3
         if cur_dir == 0:
-            if not(checkSolid(snakes, cur_dir, myHead)):
-                first = countEmpty(snakes, cur_dir, {"x": myHead["x"], "y": myHead["y"]-1})
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]-1})
         elif cur_dir == 1:
-            if not(checkSolid(snakes, cur_dir, myHead)):
-                first = countEmpty(snakes, cur_dir, {"x": myHead["x"], "y": myHead["y"]+1})
-        if not (checkSolid(snakes, second_dir, myHead)):
-            second = countEmpty(snakes, second_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]+1})
+        if not (checkSolid(bodys, second_dir, myHead)):
+            second = countEmpty(bodys, second_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
             second_dict = {"x": myHead["x"]-1, "y": myHead["y"]}
-        if not (checkSolid(snakes, third_dir, myHead)):
-            third = countEmpty(snakes, third_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
+        if not (checkSolid(bodys, third_dir, myHead)):
+            third = countEmpty(bodys, third_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
             third_dict = {"x": myHead["x"]+1, "y": myHead["y"]}
 
     elif cur_dir == 2 or cur_dir == 3:
@@ -222,19 +220,19 @@ def threeDirChecker(snakes, cur_dir, myHead):
         second_dir = 0
         third_dir = 1
         if cur_dir == 2:
-            if not(checkSolid(snakes, cur_dir, myHead)):
-                first = countEmpty(snakes, cur_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
                 print("first :"+str(first)+", first_dir "+str(first_dir))
         elif cur_dir == 3:
-            if not(checkSolid(snakes, cur_dir, myHead)):
-                first = countEmpty(snakes, cur_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
                 print("first :"+str(first)+", first_dir "+str(first_dir))
-        if not (checkSolid(snakes, second_dir, myHead)):
-            second = countEmpty(snakes, second_dir, {"x": myHead["x"], "y": myHead["y"]-1})
+        if not (checkSolid(bodys, second_dir, myHead)):
+            second = countEmpty(bodys, second_dir, {"x": myHead["x"], "y": myHead["y"]-1})
             second_dict = {"x": myHead["x"], "y": myHead["y"]-1}
             print("second :"+str(second)+", second_dir "+str(second_dir))
-        if not (checkSolid(snakes, third_dir, myHead)):
-            third = countEmpty(snakes, third_dir, {"x": myHead["x"], "y": myHead["y"]+1})
+        if not (checkSolid(bodys, third_dir, myHead)):
+            third = countEmpty(bodys, third_dir, {"x": myHead["x"], "y": myHead["y"]+1})
             third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
             print("third :"+str(third)+", third_dir "+str(third_dir))
     #test check
@@ -262,23 +260,23 @@ def threeDirChecker(snakes, cur_dir, myHead):
 
 
 
-def countEmpty(snakes, cur_dir, myHead):
+def countEmpty(bodys, cur_dir, myHead):
     count = 3
     if cur_dir == 0 or cur_dir == 1:
-        if checkSolid(snakes,2 , myHead):
+        if checkSolid(bodys,2 , myHead):
             count-=1
             print("solid for second dir")
-        if checkSolid(snakes,3,myHead):
+        if checkSolid(bodys,3,myHead):
             count-=1
             print("solid for third dir")
     if cur_dir == 2 and cur_dir == 3:
-        if checkSolid(snakes,0 , myHead):
+        if checkSolid(bodys,0 , myHead):
             count-=1
             print("solid for second dir")
-        if checkSolid(snakes,1,myHead):
+        if checkSolid(bodys,1,myHead):
             count-=1
             print("solid for third dir")
-    if checkSolid(snakes,cur_dir,myHead):
+    if checkSolid(bodys,cur_dir,myHead):
             count-=1
             print("solid ahead")
     return count
