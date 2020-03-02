@@ -103,11 +103,12 @@ def move():
         cur_dir = threeDirChecker(snakes,cur_dir,myHead)
 
     if (cur_dir == 0 and prev == 1) or (cur_dir ==1 and prev == 0):
-        cur_dir= random.choice(['right', 'left'])
+        cur_dir= random.choice([2, 3])
     elif (cur_dir == 2 and prev == 3) or (cur_dir ==3 and prev == 2):
-        cur_dir= random.choice(['up', 'down'])
+        cur_dir= random.choice([0, 1])
 
     move = directions[cur_dir]
+    print(prev)
     print(move)
     prev = cur_dir
     # Shouts are messages sent to all the other snakes in the game.
