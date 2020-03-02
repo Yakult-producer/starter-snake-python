@@ -134,6 +134,14 @@ def move():
     )
 
 
+def go(bodys,cur_dir,myHead):
+
+
+
+
+
+
+
 def findFood(foods, head_pos):
     x = head_pos["x"]
     y = head_pos["y"]
@@ -178,16 +186,16 @@ def checkCollision(bodys, cur_dir, myHead):
     """
     if checkSolid(bodys, cur_dir, myHead):
         temp=threeDirChecker(bodys,cur_dir,myHead)
-    if (temp == 0 and prev == 1) or (temp == 1 and prev == 0):
-        if not(checkSolid(bodys, left, myHead) and prev != right):
-            temp = left
-        elif not(checkSolid(bodys, right, myHead) and prev != left):
-            temp = right
-    elif (temp == 2 and prev == 3) or (temp == 3 and prev == 2):
-        if not(checkSolid(bodys, up, myHead) and prev != down):
-            temp = up
-        elif not(checkSolid(bodys, down, myHead) and prev != up):
-            temp = down
+        if (temp == 0 and prev == 1) or (temp == 1 and prev == 0):
+            if not(checkSolid(bodys, left, myHead) and prev != right):
+                temp = left
+            elif not(checkSolid(bodys, right, myHead) and prev != left):
+                temp = right
+        elif (temp == 2 and prev == 3) or (temp == 3 and prev == 2):
+            if not(checkSolid(bodys, up, myHead) and prev != down):
+                temp = up
+            elif not(checkSolid(bodys, down, myHead) and prev != up):
+                temp = down
     return temp
 
 
