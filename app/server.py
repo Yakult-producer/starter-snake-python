@@ -39,12 +39,12 @@ def start():
 
     directions = [0, 1, 2, 3]
     prev = random.choice(directions)
-
+    print("starting prev:"+str(prev))
     # print(checkSolid(snakes,{"x":1,"y":1}))
 
-    print()
-    print("START:", json.dumps(data))
-    print()
+    # print()
+    # print("START:", json.dumps(data))
+    # print()
 
     response = {"color": "#00FF00",
                 "headType": "regular", "tailType": "regular"}
