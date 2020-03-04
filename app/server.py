@@ -110,7 +110,7 @@ def move():
     else:
         cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
-    if (checkSolid):
+    if (checkSolid(bodys,cur_dir,myHead)):
         if cur_dir==0 or cur_dir==1:
             cur_dir=random.choice([2,3])
         elif cur_dir==2 or cur_dir==3:
@@ -138,8 +138,14 @@ def move():
         body=json.dumps(response),
     )
 
-def new_move():
-    cur_dir=0
+def calculating_move(cur_dir):
+    up = 0
+    down = 1
+    left = 2
+    right = 3
+
+
+
 
     return cur_dir
 
