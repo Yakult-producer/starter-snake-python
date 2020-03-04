@@ -110,10 +110,12 @@ def move():
     else:
         cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
-    if (cur_dir == 0 and prev == 1) or (cur_dir ==1 and prev == 0):
-        cur_dir= random.choice([2, 3])
-    elif (cur_dir == 2 and prev == 3) or (cur_dir ==3 and prev == 2):
-        cur_dir= random.choice([0, 1])
+    if (checkSolid):
+        if cur_dir==0 or cur_dir==1:
+            cur_dir=random.choice[2,3]
+        elif cur_dir==2 or cur_dir==3:
+            cur_dir=random.choice[0,1]
+    
 
     #cur_dir=checkCollision(bodys, cur_dir, myHead)
     print("width:"+str(board_width)+", height:"+str(board_height))
@@ -136,6 +138,10 @@ def move():
         body=json.dumps(response),
     )
 
+def new_move():
+    cur_dir=0
+
+    return cur_dir
 
 
 
@@ -158,7 +164,7 @@ def findFood(foods, head_pos):
 
 
 def checkSolid(bodys, cur_dir, myHead):
-    #O(n)
+    
     if cur_dir == 0:
         if myHead["y"]-1 < 0 or {"x": myHead["x"], "y": myHead["y"]-1} in bodys:
             return True
