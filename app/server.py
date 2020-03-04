@@ -113,8 +113,10 @@ def move():
     if (checkSolid(bodys,cur_dir,myHead)):
         if cur_dir==0 or cur_dir==1:
             cur_dir=random.choice([2,3])
+            print("scream")
         elif cur_dir==2 or cur_dir==3:
             cur_dir=random.choice([0,1])
+            print("scream")
     
 
     #cur_dir=checkCollision(bodys, cur_dir, myHead)
