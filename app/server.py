@@ -113,19 +113,19 @@ def move():
     if (checkSolid(bodys,cur_dir,myHead)):
         if cur_dir==0:
             if (not checkSolid(bodys,1,myHead)):
-                print(cur_dir+" error corect")
+                print(str(cur_dir)+" error corect")
                 cur_dir=1
         elif cur_dir==1:
             if (not checkSolid(bodys,0,myHead)):
-                print(cur_dir+" error corect")
+                print(str(cur_dir)+" error corect")
                 cur_dir=0
         elif cur_dir==2:
             if (not checkSolid(bodys,3,myHead)):
-                print(cur_dir+" error corect")
+                print(str(cur_dir)+" error corect")
                 cur_dir=3
         elif cur_dir==3:
             if (not checkSolid(bodys,2,myHead)):
-                print(cur_dir+" error corect")
+                print(str(cur_dir)+" error corect")
                 cur_dir=2
     
 
