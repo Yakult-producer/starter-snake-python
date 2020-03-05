@@ -7,9 +7,8 @@ from bottle import HTTPResponse
 
 # [0=up,1=down,2=left,3=right]
 prev = 0
-board_width = 1
-board_height = 1
-
+board_width=1
+board_height=1
 
 @bottle.route("/")
 def index():
@@ -184,7 +183,7 @@ def findFood(foods, head_pos):
 
 
 def checkSolid(bodys, cur_dir, myHead):
-    
+    global board_width, board_height, prev
     if cur_dir == 0:
         if myHead["y"]-1 < 0 or {"x": myHead["x"], "y": myHead["y"]-1} in bodys:
             return True
@@ -201,6 +200,7 @@ def checkSolid(bodys, cur_dir, myHead):
 
 
 def checkCollision(bodys, cur_dir, myHead):
+    global board_width, board_height, prev
     up = 0
     down = 1
     left = 2
@@ -229,6 +229,7 @@ def threeDirChecker(bodys, cur_dir, myHead):
     """
     3 dir checker
     """
+    global board_width, board_height, prev
     first = 0
     second = 0
     third = 0
