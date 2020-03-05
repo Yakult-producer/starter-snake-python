@@ -6,7 +6,6 @@ import bottle
 from bottle import HTTPResponse
 
 # [0=up,1=down,2=left,3=right]
-last_dir = 0
 board_width = 1
 board_height = 1
 
@@ -32,13 +31,13 @@ def start():
     """
     data = bottle.request.json
 
-    global board_width, board_height, last_dir
+    global board_width, board_height, prev_dir
     board_width = data["board"]["width"]
     board_height = data["board"]["height"]
     snakes = data["board"]["snakes"]
 
     directions = [0, 1, 2, 3]
-    last_dir = random.choice(directions)
+    prev_dir = random.choice(directions)
 
     # print(checkSolid(snakes,{"x":1,"y":1}))
 
@@ -67,7 +66,7 @@ def move():
     print()
 
     directions = ["up", "down", "left", "right"]
-    global last_dir
+    
 
     myHead = {"x": data["you"]["body"][0]['x'],
               "y": data["you"]["body"][0]['y']}
@@ -80,28 +79,28 @@ def move():
         for body in snake['body']:
             bodys.append(body)
 
-    
-    cur_dir = last_dir
+    prev_dir = prev(data["you"]["body"][0],data["you"]["body"][1])
+    cur_dir = prev_dir
     length = len(data["you"]["body"])
     starve=False
 
     if (myHealth <= 30) or length<12:
         pos = findFood(foods, myHead)
         starve=True
-        if (last_dir == 0 or last_dir == 1):
+        if (prev_dir == 0 or prev_dir == 1):
             if (pos["x"]-myHead["x"] < 0):
                 cur_dir = 2
             elif (pos["x"]-myHead["x"] > 0):
                 cur_dir = 3
             else:
-                cur_dir=last_dir
+                cur_dir=prev_dir
         else:
             if (pos["y"]-myHead["y"] < 0):
                 cur_dir = 0
             elif (pos["y"]-myHead["y"] > 0):
                 cur_dir = 1
             else:
-                cur_dir=last_dir
+                cur_dir=prev_dir
     else:
         starve=False
 
@@ -110,16 +109,16 @@ def move():
     else:
         cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
-    if (cur_dir == 0 and last_dir == 1) or (cur_dir ==1 and last_dir == 0):
+    if (cur_dir == 0 and prev_dir == 1) or (cur_dir ==1 and prev_dir == 0):
         cur_dir= random.choice([2, 3])
-    elif (cur_dir == 2 and last_dir == 3) or (cur_dir ==3 and last_dir == 2):
+    elif (cur_dir == 2 and prev_dir == 3) or (cur_dir ==3 and prev_dir == 2):
         cur_dir= random.choice([0, 1])
 
     move = directions[cur_dir]
-    print(last_dir)
+    print(prev_dir)
     print(move)
-    last_dir = cur_dir
-    print(last_dir)
+    prev_dir = cur_dir
+    print(prev_dir)
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
     shout = "I am a python snake!"
@@ -130,6 +129,20 @@ def move():
         headers={"Content-Type": "application/json"},
         body=json.dumps(response),
     )
+
+def prev(cur_Head, prev_Head):
+    if (cur_Head["x"]<prev_Head["x"]):
+        #return left
+        return 2
+    elif (cur_Head["x"]>prev_Head["x"]):
+        #return right
+        return 3
+    elif (cur_Head["y"]<prev_Head["y"]):
+        #return up
+        return 0
+    elif (cur_Head["y"]>prev_Head["y"]):
+        #return down
+        return 1
 
 
 def findFood(foods, head_pos):
@@ -176,15 +189,15 @@ def checkCollision(bodys, cur_dir, myHead):
     """
     if checkSolid(bodys, cur_dir, myHead):
         temp=threeDirChecker(bodys,cur_dir,myHead)
-    if (temp == 0 and last_dir == 1) or (temp == 1 and last_dir == 0):
-        if not(checkSolid(bodys, left, myHead) and last_dir != right):
+    if (temp == 0 and prev_dir == 1) or (temp == 1 and prev_dir == 0):
+        if not(checkSolid(bodys, left, myHead) and prev_dir != right):
             temp = left
-        elif not(checkSolid(bodys, right, myHead) and last_dir != left):
+        elif not(checkSolid(bodys, right, myHead) and prev_dir != left):
             temp = right
-    elif (temp == 2 and last_dir == 3) or (temp == 3 and last_dir == 2):
-        if not(checkSolid(bodys, up, myHead) and last_dir != down):
+    elif (temp == 2 and prev_dir == 3) or (temp == 3 and prev_dir == 2):
+        if not(checkSolid(bodys, up, myHead) and prev_dir != down):
             temp = up
-        elif not(checkSolid(bodys, down, myHead) and last_dir != up):
+        elif not(checkSolid(bodys, down, myHead) and prev_dir != up):
             temp = down
     return temp
 
