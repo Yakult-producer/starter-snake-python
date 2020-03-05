@@ -5,8 +5,8 @@ import random
 import bottle
 from bottle import HTTPResponse
 
-#global vari
-prev = 0
+# [0=up,1=down,2=left,3=right]
+last_dir = 0
 board_width = 1
 board_height = 1
 
@@ -31,13 +31,20 @@ def start():
     Your response will control how your snake is displayed on the board.
     """
     data = bottle.request.json
-    #print("START:", json.dumps(data))
 
-    global board_width, board_height, prev
+    global board_width, board_height, last_dir
     board_width = data["board"]["width"]
     board_height = data["board"]["height"]
+    snakes = data["board"]["snakes"]
+
     directions = [0, 1, 2, 3]
-    prev = random.choice(directions)
+    last_dir = random.choice(directions)
+
+    # print(checkSolid(snakes,{"x":1,"y":1}))
+
+    print()
+    print("START:", json.dumps(data))
+    print()
 
     response = {"color": "#00FF00",
                 "headType": "regular", "tailType": "regular"}
@@ -56,29 +63,63 @@ def move():
     Your response must include your move of up, down, left, or right.
     """
     data = bottle.request.json
-    print("turn"+str(data["turn"]))
-    # local vari for move
-    global prev
+    print("MOVE:", json.dumps(data))
+    print()
+
+    directions = ["up", "down", "left", "right"]
+    global last_dir
+
     myHead = {"x": data["you"]["body"][0]['x'],
               "y": data["you"]["body"][0]['y']}
-    cur_dir=prev
 
     myHealth = data["you"]["health"]
     foods = data["board"]["food"]
-    bodies = []
-    for body in data["board"]["snakes"]:
-        for parts in body:
-            bodies.append(parts)
+    snakes = data["board"]["snakes"]
+    bodys=[]
+    for snake in snakes:
+        for body in snake['body']:
+            bodys.append(body)
 
-    directions = ["up", "down", "left", "right"]
+    
+    cur_dir = last_dir
+    length = len(data["you"]["body"])
+    starve=False
 
-    #checkers
-    cur_dir=checkCollision(bodies,cur_dir,myHead)
-    print("before : "+ str(prev))
+    if (myHealth <= 30) or length<12:
+        pos = findFood(foods, myHead)
+        starve=True
+        if (last_dir == 0 or last_dir == 1):
+            if (pos["x"]-myHead["x"] < 0):
+                cur_dir = 2
+            elif (pos["x"]-myHead["x"] > 0):
+                cur_dir = 3
+            else:
+                cur_dir=last_dir
+        else:
+            if (pos["y"]-myHead["y"] < 0):
+                cur_dir = 0
+            elif (pos["y"]-myHead["y"] > 0):
+                cur_dir = 1
+            else:
+                cur_dir=last_dir
+    else:
+        starve=False
+
+    if starve:
+        cur_dir = checkCollision(bodys, cur_dir, myHead)
+    else:
+        cur_dir = threeDirChecker(bodys,cur_dir,myHead)
+
+    if (cur_dir == 0 and last_dir == 1) or (cur_dir ==1 and last_dir == 0):
+        cur_dir= random.choice([2, 3])
+    elif (cur_dir == 2 and last_dir == 3) or (cur_dir ==3 and last_dir == 2):
+        cur_dir= random.choice([0, 1])
+
     move = directions[cur_dir]
-    prev=cur_dir
-    print("after : "+str(prev))
+    print(last_dir)
     print(move)
+    last_dir = cur_dir
+    print(last_dir)
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
     shout = "I am a python snake!"
@@ -89,6 +130,22 @@ def move():
         headers={"Content-Type": "application/json"},
         body=json.dumps(response),
     )
+
+
+def findFood(foods, head_pos):
+    x = head_pos["x"]
+    y = head_pos["y"]
+
+    lowest_index = 0
+
+    for i in range(len(foods)-1):
+        if abs(foods[i]["x"]-x)+abs(foods[i]["y"]-y) < abs(foods[lowest_index]["x"]-x)+abs(foods[lowest_index]["y"]-y):
+            lowest_index = i
+
+    pos = {"x": foods[lowest_index]["x"], "y": foods[lowest_index]["y"]}
+
+    return pos
+
 
 def checkSolid(bodys, cur_dir, myHead):
     #O(n)
@@ -106,6 +163,7 @@ def checkSolid(bodys, cur_dir, myHead):
             return True
     return False
 
+
 def checkCollision(bodys, cur_dir, myHead):
     up = 0
     down = 1
@@ -117,26 +175,112 @@ def checkCollision(bodys, cur_dir, myHead):
     old checker
     """
     if checkSolid(bodys, cur_dir, myHead):
-        print("solide ahead "+ str(cur_dir))
-        if (temp == 0 and prev == 1) or (temp == 1 and prev == 0) or (temp==0 or temp==1):
-            print("waiting... "+ str(cur_dir))
-            if not(checkSolid(bodys, left, myHead) and prev != right):
-                temp = left
-                print("changing dir: "+ str(temp))
-            elif not(checkSolid(bodys, right, myHead) and prev != left):
-                temp = right
-                print("changing dir: "+ str(temp))
-        elif (temp == 2 and prev == 3) or (temp == 3 and prev == 2) or (temp==2 or temp==3):
-            print("waiting... "+ str(cur_dir))
-            if not(checkSolid(bodys, up, myHead) and prev != down):
-                temp = up
-                print("changing dir: "+ str(temp))
-            elif not(checkSolid(bodys, down, myHead) and prev != up):
-                temp = down
-                print("changing dir: "+ str(temp))
-
-                
+        temp=threeDirChecker(bodys,cur_dir,myHead)
+    if (temp == 0 and last_dir == 1) or (temp == 1 and last_dir == 0):
+        if not(checkSolid(bodys, left, myHead) and last_dir != right):
+            temp = left
+        elif not(checkSolid(bodys, right, myHead) and last_dir != left):
+            temp = right
+    elif (temp == 2 and last_dir == 3) or (temp == 3 and last_dir == 2):
+        if not(checkSolid(bodys, up, myHead) and last_dir != down):
+            temp = up
+        elif not(checkSolid(bodys, down, myHead) and last_dir != up):
+            temp = down
     return temp
+
+
+def threeDirChecker(bodys, cur_dir, myHead):
+    """
+    3 dir checker
+    """
+    first = 0
+    second = 0
+    third = 0
+    # find the 3 dir
+    if cur_dir == 0 or cur_dir == 1:
+        # check possibility of left and right
+        first_dir = cur_dir
+        second_dir = 2
+        third_dir = 3
+        if cur_dir == 0:
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]-1})
+        elif cur_dir == 1:
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]+1})
+        if not (checkSolid(bodys, second_dir, myHead)):
+            second = countEmpty(bodys, second_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
+            second_dict = {"x": myHead["x"]-1, "y": myHead["y"]}
+        if not (checkSolid(bodys, third_dir, myHead)):
+            third = countEmpty(bodys, third_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
+            third_dict = {"x": myHead["x"]+1, "y": myHead["y"]}
+
+    elif cur_dir == 2 or cur_dir == 3:
+        # check possiblity of up and down
+        first_dir = cur_dir
+        second_dir = 0
+        third_dir = 1
+        if cur_dir == 2:
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
+                print("first :"+str(first)+", first_dir "+str(first_dir))
+        elif cur_dir == 3:
+            if not(checkSolid(bodys, cur_dir, myHead)):
+                first = countEmpty(bodys, cur_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
+                print("first :"+str(first)+", first_dir "+str(first_dir))
+        if not (checkSolid(bodys, second_dir, myHead)):
+            second = countEmpty(bodys, second_dir, {"x": myHead["x"], "y": myHead["y"]-1})
+            second_dict = {"x": myHead["x"], "y": myHead["y"]-1}
+            print("second :"+str(second)+", second_dir "+str(second_dir))
+        if not (checkSolid(bodys, third_dir, myHead)):
+            third = countEmpty(bodys, third_dir, {"x": myHead["x"], "y": myHead["y"]+1})
+            third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
+            print("third :"+str(third)+", third_dir "+str(third_dir))
+    #test check
+    
+    
+    
+
+
+    # compare
+    if first == second == third:
+        return first_dir
+    elif first >= second and first >= third:
+        return first_dir
+    elif second > third:
+        print("turn :"+str(second_dir))
+        return second_dir
+    elif third > second:
+        print("turn:"+str(third_dir))
+        return third_dir
+    elif second == third:
+        #do check more
+        s=random.choice([second_dir, third_dir])
+        print("luck :"+str(s))
+        return s
+
+
+
+def countEmpty(bodys, cur_dir, myHead):
+    count = 3
+    if cur_dir == 0 or cur_dir == 1:
+        if checkSolid(bodys,2 , myHead):
+            count-=1
+            print("solid for second dir")
+        if checkSolid(bodys,3,myHead):
+            count-=1
+            print("solid for third dir")
+    if cur_dir == 2 and cur_dir == 3:
+        if checkSolid(bodys,0 , myHead):
+            count-=1
+            print("solid for second dir")
+        if checkSolid(bodys,1,myHead):
+            count-=1
+            print("solid for third dir")
+    if checkSolid(bodys,cur_dir,myHead):
+            count-=1
+            print("solid ahead")
+    return count
 
 
 @bottle.post("/end")
