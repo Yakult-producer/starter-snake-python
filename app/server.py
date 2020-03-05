@@ -116,16 +116,18 @@ def checkCollision(bodys, cur_dir, myHead):
     """
     if checkSolid(bodys, cur_dir, myHead):
         print("solide ahead "+ str(cur_dir))
-        if (temp == 0 and prev == 1) or (temp == 1 and prev == 0):
+        if (temp == 0 and prev == 1) or (temp == 1 and prev == 0) or (temp==0 or temp==1):
             if not(checkSolid(bodys, left, myHead) and prev != right):
                 temp = left
             elif not(checkSolid(bodys, right, myHead) and prev != left):
                 temp = right
-        elif (temp == 2 and prev == 3) or (temp == 3 and prev == 2):
+        elif (temp == 2 and prev == 3) or (temp == 3 and prev == 2) or (temp==2 or temp==3):
             if not(checkSolid(bodys, up, myHead) and prev != down):
                 temp = up
             elif not(checkSolid(bodys, down, myHead) and prev != up):
                 temp = down
+
+                
     return temp
 
 
