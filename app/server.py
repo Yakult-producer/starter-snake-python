@@ -8,6 +8,7 @@ from bottle import HTTPResponse
 # [0=up,1=down,2=left,3=right]
 prev = 0
 board_width=1
+print("something went wrong if this show twice")
 board_height=1
 
 @bottle.route("/")
