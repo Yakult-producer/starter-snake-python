@@ -111,7 +111,8 @@ def move():
         cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
     if (checkSolid(bodys,cur_dir,myHead)):
-        print("soft scream")
+
+        print("soft scream  "+str(cur_dir))
         if cur_dir==0:
             if (not checkSolid(bodys,1,myHead)):
                 print(str(cur_dir)+" error corect")
