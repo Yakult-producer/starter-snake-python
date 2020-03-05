@@ -110,6 +110,7 @@ def move():
     if starve:
         cur_dir = checkCollision(bodys, cur_dir, myHead,prev_dir)
     else:
+        print("meep")
         cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
     if (cur_dir == 0 and prev_dir == 1) or (cur_dir ==1 and prev_dir == 0):
