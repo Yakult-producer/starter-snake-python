@@ -31,7 +31,7 @@ def start():
     """
     data = bottle.request.json
 
-    global board_width, board_height, prev_dir
+    global board_width, board_height
     board_width = data["board"]["width"]
     board_height = data["board"]["height"]
     snakes = data["board"]["snakes"]
@@ -105,9 +105,9 @@ def move():
         starve=False
 
     if starve:
-        cur_dir = checkCollision(bodys, cur_dir, myHead)
+        cur_dir = checkCollision(bodys, cur_dir, myHead,prev_dir)
     else:
-        cur_dir = threeDirChecker(bodys,cur_dir,myHead)
+        cur_dir = threeDirChecker(bodys,cur_dir,myHead,prev_dir)
 
     if (cur_dir == 0 and prev_dir == 1) or (cur_dir ==1 and prev_dir == 0):
         cur_dir= random.choice([2, 3])
@@ -177,7 +177,7 @@ def checkSolid(bodys, cur_dir, myHead):
     return False
 
 
-def checkCollision(bodys, cur_dir, myHead):
+def checkCollision(bodys, cur_dir, myHead,prev_dir):
     up = 0
     down = 1
     left = 2
