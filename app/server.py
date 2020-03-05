@@ -6,9 +6,9 @@ import bottle
 from bottle import HTTPResponse
 
 # [0=up,1=down,2=left,3=right]
-board_width = 1
-board_height = 1
 
+board_height=1
+board_width=1
 
 @bottle.route("/")
 def index():
@@ -31,9 +31,7 @@ def start():
     """
     data = bottle.request.json
 
-    global board_width, board_height
-    board_width = data["board"]["width"]
-    board_height = data["board"]["height"]
+    
     snakes = data["board"]["snakes"]
 
     directions = [0, 1, 2, 3]
@@ -64,6 +62,11 @@ def move():
     data = bottle.request.json
     print("MOVE:", json.dumps(data))
     print()
+
+    global board_height, board_width
+
+    board_width = data["board"]["width"]
+    board_height = data["board"]["height"]
 
     directions = ["up", "down", "left", "right"]
     
