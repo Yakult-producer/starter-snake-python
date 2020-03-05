@@ -74,8 +74,10 @@ def move():
 
     #checkers
     cur_dir=checkCollision(bodies,cur_dir,myHead)
-
+    print("before : "+ str(prev))
     move = directions[cur_dir]
+    prev=cur_dir
+    print("after : "+str(prev))
     print(move)
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
