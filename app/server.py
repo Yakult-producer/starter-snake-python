@@ -76,7 +76,7 @@ def move():
     cur_dir=checkCollision(bodies,cur_dir,myHead)
 
     move = directions[cur_dir]
-
+    print(move)
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
     shout = "I am a python snake!"
@@ -115,6 +115,7 @@ def checkCollision(bodys, cur_dir, myHead):
     old checker
     """
     if checkSolid(bodys, cur_dir, myHead):
+        print("solide ahead "+ str(cur_dir))
         if (temp == 0 and prev == 1) or (temp == 1 and prev == 0):
             if not(checkSolid(bodys, left, myHead) and prev != right):
                 temp = left
