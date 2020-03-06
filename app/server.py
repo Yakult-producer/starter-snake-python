@@ -206,6 +206,8 @@ def checkCollision(bodys, cur_dir, myHead,prev_dir):
     return temp
 
 
+
+
 def threeDirChecker(bodys, cur_dir, myHead):
     """
     3 dir checker
@@ -254,9 +256,9 @@ def threeDirChecker(bodys, cur_dir, myHead):
             third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
             print("third :"+str(third)+", third_dir "+str(third_dir))
     #test check
-    
-    
-    
+    print("first "+ str(first))
+    print("second "+ str(second))
+    print("third "+ str(third))
 
 
     # compare
