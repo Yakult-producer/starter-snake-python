@@ -254,9 +254,9 @@ def threeDirChecker(bodys, cur_dir, myHead):
             third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
             print("third :"+str(third)+", third_dir "+str(third_dir))
     #test check
-    print("first "+ str(first))
-    print("second "+ str(second))
-    print("third "+ str(third))
+    print("first "+ str(first)+"first_dir"+ str(first_dir))
+    print("second "+ str(second)+"second_dir"+ str(second_dir))
+    print("third "+ str(third)+"third_dir"+ str(third_dir))
 
 
     # compare
