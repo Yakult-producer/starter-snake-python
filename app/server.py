@@ -87,25 +87,25 @@ def move():
     length = len(data["you"]["body"])
     starve=False
 
-    if (myHealth <= 50) or length<12:
-        pos = findFood(foods, myHead)
-        starve=True
-        if (prev_dir == 0 or prev_dir == 1):
-            if (pos["x"]-myHead["x"] < 0):
-                cur_dir = 2
-            elif (pos["x"]-myHead["x"] > 0):
-                cur_dir = 3
-            else:
-                cur_dir=prev_dir
-        else:
-            if (pos["y"]-myHead["y"] < 0):
-                cur_dir = 0
-            elif (pos["y"]-myHead["y"] > 0):
-                cur_dir = 1
-            else:
-                cur_dir=prev_dir
-    else:
-        starve=False
+    # if (myHealth <= 50) or length<12:
+    #     pos = findFood(foods, myHead)
+    #     starve=True
+    #     if (prev_dir == 0 or prev_dir == 1):
+    #         if (pos["x"]-myHead["x"] < 0):
+    #             cur_dir = 2
+    #         elif (pos["x"]-myHead["x"] > 0):
+    #             cur_dir = 3
+    #         else:
+    #             cur_dir=prev_dir
+    #     else:
+    #         if (pos["y"]-myHead["y"] < 0):
+    #             cur_dir = 0
+    #         elif (pos["y"]-myHead["y"] > 0):
+    #             cur_dir = 1
+    #         else:
+    #             cur_dir=prev_dir
+    # else:
+    #     starve=False
 
 
     print("meep")
@@ -145,6 +145,8 @@ def prev(cur_Head, prev_Head):
     elif (cur_Head["y"]>prev_Head["y"]):
         #return down
         return 1
+    else :
+        return random.choice([0,1,2,3])
 
 
 def findFood(foods, head_pos):
