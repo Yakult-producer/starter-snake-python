@@ -87,7 +87,7 @@ def move():
     length = len(data["you"]["body"])
     starve=False
 
-    if (myHealth <= 30) or length<12:
+    if (myHealth <= 50) or length<12:
         pos = findFood(foods, myHead)
         starve=True
         if (prev_dir == 0 or prev_dir == 1):
@@ -107,11 +107,9 @@ def move():
     else:
         starve=False
 
-    if starve:
-        cur_dir = checkCollision(bodys, cur_dir, myHead,prev_dir)
-    else:
-        print("meep")
-        cur_dir = threeDirChecker(bodys,cur_dir,myHead)
+
+    print("meep")
+    cur_dir = threeDirChecker(bodys,cur_dir,myHead)
 
     if (cur_dir == 0 and prev_dir == 1) or (cur_dir ==1 and prev_dir == 0):
         cur_dir= random.choice([2, 3])
