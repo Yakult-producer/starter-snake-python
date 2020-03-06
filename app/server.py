@@ -282,16 +282,20 @@ def countEmpty(bodys, cur_dir, myHead):
     count = 3
     if cur_dir == 0 or cur_dir == 1:
         if checkSolid(bodys,2 , myHead):
+            print(str(cur_dir))
             count-=1
             print("solid for second dir")
         if checkSolid(bodys,3,myHead):
+            print(str(cur_dir))
             count-=1
             print("solid for third dir")
     if cur_dir == 2 and cur_dir == 3:
         if checkSolid(bodys,0 , myHead):
+            print(str(cur_dir))
             count-=1
             print("solid for second dir")
         if checkSolid(bodys,1,myHead):
+            print(str(cur_dir))
             count-=1
             print("solid for third dir")
     if checkSolid(bodys,cur_dir,myHead):
