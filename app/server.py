@@ -87,34 +87,30 @@ def move():
     length = len(data["you"]["body"])
     starve=False
 
-    # if (myHealth <= 50) or length<12:
-    #     pos = findFood(foods, myHead)
-    #     starve=True
-    #     if (prev_dir == 0 or prev_dir == 1):
-    #         if (pos["x"]-myHead["x"] < 0):
-    #             cur_dir = 2
-    #         elif (pos["x"]-myHead["x"] > 0):
-    #             cur_dir = 3
-    #         else:
-    #             cur_dir=prev_dir
-    #     else:
-    #         if (pos["y"]-myHead["y"] < 0):
-    #             cur_dir = 0
-    #         elif (pos["y"]-myHead["y"] > 0):
-    #             cur_dir = 1
-    #         else:
-    #             cur_dir=prev_dir
-    # else:
-    #     starve=False
+    if (myHealth <= 50) or length<12:
+        pos = findFood(foods, myHead)
+        starve=True
+        if (prev_dir == 0 or prev_dir == 1):
+            if (pos["x"]-myHead["x"] < 0):
+                cur_dir = 2
+            elif (pos["x"]-myHead["x"] > 0):
+                cur_dir = 3
+            else:
+                cur_dir=prev_dir
+        else:
+            if (pos["y"]-myHead["y"] < 0):
+                cur_dir = 0
+            elif (pos["y"]-myHead["y"] > 0):
+                cur_dir = 1
+            else:
+                cur_dir=prev_dir
+    else:
+        starve=False
 
 
     print("meep")
-    cur_dir = threeDirChecker(bodys,cur_dir,myHead)
-
-    if (cur_dir == 0 and prev_dir == 1) or (cur_dir ==1 and prev_dir == 0):
-        cur_dir= random.choice([2, 3])
-    elif (cur_dir == 2 and prev_dir == 3) or (cur_dir ==3 and prev_dir == 2):
-        cur_dir= random.choice([0, 1])
+    cur_dir = threeDirChecker(bodys,prev_dir,myHead)
+    
 
     move = directions[cur_dir]
     print(prev_dir)
