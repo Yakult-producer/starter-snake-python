@@ -202,7 +202,6 @@ def checkCollision(bodys, cur_dir, myHead,prev_dir):
             temp = up
         elif not(checkSolid(bodys, down, myHead) and prev_dir != up):
             temp = down
-    if (temp)
     return temp
 
 
