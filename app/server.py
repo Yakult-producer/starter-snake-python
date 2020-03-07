@@ -223,15 +223,19 @@ def threeDirChecker(bodys, cur_dir, myHead):
         if cur_dir == 0:
             if not(checkSolid(bodys, cur_dir, myHead)):
                 first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]-1})
+                print("first :"+str(first)+", first_dir "+str(first_dir))
         elif cur_dir == 1:
             if not(checkSolid(bodys, cur_dir, myHead)):
                 first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]+1})
+                print("first :"+str(first)+", first_dir "+str(first_dir))
         if not (checkSolid(bodys, second_dir, myHead)):
             second = countEmpty(bodys, second_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
             second_dict = {"x": myHead["x"]-1, "y": myHead["y"]}
+            print("second :"+str(second)+", second_dir "+str(second_dir))
         if not (checkSolid(bodys, third_dir, myHead)):
             third = countEmpty(bodys, third_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
             third_dict = {"x": myHead["x"]+1, "y": myHead["y"]}
+            print("third :"+str(third)+", third_dir "+str(third_dir))
 
     elif cur_dir == 2 or cur_dir == 3:
         # check possiblity of up and down
@@ -286,19 +290,23 @@ def countEmpty(bodys, cur_dir, myHead):
     if cur_dir == 0 or cur_dir == 1:
         if checkSolid(bodys,2 , myHead):
             print(str(cur_dir))
+            print("left empty")
             count-=1
             print("solid for second dir")
         if checkSolid(bodys,3,myHead):
             print(str(cur_dir))
+            print("right empty")
             count-=1
             print("solid for third dir")
     if cur_dir == 2 and cur_dir == 3:
         if checkSolid(bodys,0 , myHead):
             print(str(cur_dir))
+            print("up empty")
             count-=1
             print("solid for second dir")
         if checkSolid(bodys,1,myHead):
             print(str(cur_dir))
+            print("down empty")
             count-=1
             print("solid for third dir")
     if checkSolid(bodys,cur_dir,myHead):
