@@ -166,16 +166,16 @@ def findFood(foods, head_pos):
 def checkSolid(bodys, cur_dir, myHead):
     #O(n)
     if cur_dir == 0:
-        if myHead["y"]-1 < 0 or {"x": myHead["x"], "y": myHead["y"]-1} in bodys:
+        if (myHead["y"]-1 < 0) or ({"x": myHead["x"], "y": myHead["y"]-1} in bodys):
             return True
     if cur_dir == 1:
-        if myHead["y"]+1 >= board_height or {"x": myHead["x"], "y": myHead["y"]+1} in bodys:
+        if (myHead["y"]+1 >= board_height) or ({"x": myHead["x"], "y": myHead["y"]+1} in bodys):
             return True
     if cur_dir == 2:
-        if myHead["x"]-1 < 0 or {"x": myHead["x"]-1, "y": myHead["y"]} in bodys:
+        if (myHead["x"]-1 < 0) or ({"x": myHead["x"]-1, "y": myHead["y"]} in bodys):
             return True
     if cur_dir == 3:
-        if myHead["x"]+1 >= board_width or {"x": myHead["x"]+1, "y": myHead["y"]} in bodys:
+        if (myHead["x"]+1 >= board_width) or ({"x": myHead["x"]+1, "y": myHead["y"]} in bodys):
             return True
     return False
 
@@ -259,13 +259,13 @@ def threeDirChecker(bodys, cur_dir, myHead):
             third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
             print("third :"+str(third)+", third_dir "+str(third_dir))
     #test check
-    print("first "+ str(first)+"first_dir"+ str(first_dir))
-    print("second "+ str(second)+"second_dir"+ str(second_dir))
-    print("third "+ str(third)+"third_dir"+ str(third_dir))
+    # print("first "+ str(first)+"first_dir"+ str(first_dir))
+    # print("second "+ str(second)+"second_dir"+ str(second_dir))
+    # print("third "+ str(third)+"third_dir"+ str(third_dir))
 
 
     # compare
-    if (first==second==third==0 and prev_dir!=cur_dir):
+    if (first==second==third==1 and prev_dir!=cur_dir):
         return threeDirChecker(bodys,prev_dir,myHead)
     if first == second == third:
         return first_dir
@@ -286,10 +286,10 @@ def threeDirChecker(bodys, cur_dir, myHead):
 
 
 def countEmpty(bodys, cur_dir, myHead):
-    count = 3
+    count = 4
     if cur_dir == 0 or cur_dir == 1:
+        print("checking L and R is it solid")
         if checkSolid(bodys,2 , myHead):
-            print("checking L and R is it solid")
             print(str(cur_dir))
             print("left empty")
             count-=1
@@ -299,7 +299,7 @@ def countEmpty(bodys, cur_dir, myHead):
             print("right empty")
             count-=1
             print("solid for third dir")
-    if cur_dir == 2 and cur_dir == 3:
+    if cur_dir == 2 or cur_dir == 3:
         print("checking up and down is it solid")
         if checkSolid(bodys,0 , myHead):
             print(str(cur_dir))
