@@ -6,6 +6,7 @@ import bottle
 from bottle import HTTPResponse
 
 # [0=up,1=down,2=left,3=right]
+prev_dir = random.choice(directions)
 
 board_height=1
 board_width=1
@@ -35,7 +36,7 @@ def start():
     snakes = data["board"]["snakes"]
 
     directions = [0, 1, 2, 3]
-    prev_dir = random.choice(directions)
+    
 
     # print(checkSolid(snakes,{"x":1,"y":1}))
 
@@ -63,7 +64,7 @@ def move():
     print("MOVE:", json.dumps(data))
     print()
 
-    global board_height, board_width
+    global board_height, board_width, prev_dir
 
     board_width = data["board"]["width"]
     board_height = data["board"]["height"]
@@ -201,6 +202,7 @@ def checkCollision(bodys, cur_dir, myHead,prev_dir):
             temp = up
         elif not(checkSolid(bodys, down, myHead) and prev_dir != up):
             temp = down
+    if (temp)
     return temp
 
 
@@ -260,6 +262,8 @@ def threeDirChecker(bodys, cur_dir, myHead):
 
 
     # compare
+    if (first==second==third==0 and prev!=cur_dir):
+        return threeDirChecker(bodys,prev_dir,myHead)
     if first == second == third:
         return first_dir
     elif first >= second and first >= third:
