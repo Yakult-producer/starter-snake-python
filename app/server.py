@@ -107,9 +107,11 @@ def move():
     else:
         starve=False
 
-
-    print("meep")
-    cur_dir = threeDirChecker(bodys,prev_dir,myHead)
+    if (starve):
+        cur_dir=checkCollision(bodys,cur_dir,myHead,prev_dir)
+    else:
+        print("meep")
+        cur_dir = threeDirChecker(bodys,prev_dir,myHead)
     
 
     move = directions[cur_dir]
