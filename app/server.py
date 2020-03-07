@@ -261,7 +261,7 @@ def threeDirChecker(bodys, cur_dir, myHead):
 
 
     # compare
-    if (first==second==third==0 and prev!=cur_dir):
+    if (first==second==third==0 and prev_dir!=cur_dir):
         return threeDirChecker(bodys,prev_dir,myHead)
     if first == second == third:
         return first_dir
