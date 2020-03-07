@@ -289,6 +289,7 @@ def countEmpty(bodys, cur_dir, myHead):
     count = 3
     if cur_dir == 0 or cur_dir == 1:
         if checkSolid(bodys,2 , myHead):
+            print("checking L and R is it solid")
             print(str(cur_dir))
             print("left empty")
             count-=1
@@ -299,6 +300,7 @@ def countEmpty(bodys, cur_dir, myHead):
             count-=1
             print("solid for third dir")
     if cur_dir == 2 and cur_dir == 3:
+        print("checking up and down is it solid")
         if checkSolid(bodys,0 , myHead):
             print(str(cur_dir))
             print("up empty")
@@ -311,7 +313,7 @@ def countEmpty(bodys, cur_dir, myHead):
             print("solid for third dir")
     if checkSolid(bodys,cur_dir,myHead):
             count-=1
-            print("solid ahead")
+            print("solid ahead"+str(cur_dir))
     return count
 
 
