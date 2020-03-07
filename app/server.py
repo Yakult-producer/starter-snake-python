@@ -6,7 +6,7 @@ import bottle
 from bottle import HTTPResponse
 
 # [0=up,1=down,2=left,3=right]
-prev_dir = random.choice(directions)
+prev_dir = random.choice([0,1,2,3])
 
 board_height=1
 board_width=1
