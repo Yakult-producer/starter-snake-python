@@ -4,12 +4,16 @@ import random
 
 import bottle
 from bottle import HTTPResponse
+from collections import deque
+from queue import Queue
 
-# [0=up,1=down,2=left,3=right]
-prev_dir = random.choice([0,1,2,3])
+prev_dir = random.choice([0, 1, 2, 3])
 
-board_height=1
-board_width=1
+board_height = 1
+board_width = 1
+
+path=[]
+
 
 @bottle.route("/")
 def index():
@@ -31,18 +35,7 @@ def start():
     Your response will control how your snake is displayed on the board.
     """
     data = bottle.request.json
-
-    
-    snakes = data["board"]["snakes"]
-
-    directions = [0, 1, 2, 3]
-    
-
-    # print(checkSolid(snakes,{"x":1,"y":1}))
-
-    print()
     print("START:", json.dumps(data))
-    print()
 
     response = {"color": "#00FF00",
                 "headType": "regular", "tailType": "regular"}
@@ -61,65 +54,30 @@ def move():
     Your response must include your move of up, down, left, or right.
     """
     data = bottle.request.json
-    print("MOVE:", json.dumps(data))
-    print()
+    # print("MOVE:", json.dumps(data))
 
-    global board_height, board_width, prev_dir
+    global board_height, board_width, prev_dir, path
 
+    path=[]
     board_width = data["board"]["width"]
     board_height = data["board"]["height"]
 
     directions = ["up", "down", "left", "right"]
-    
 
     myHead = {"x": data["you"]["body"][0]['x'],
               "y": data["you"]["body"][0]['y']}
 
     myHealth = data["you"]["health"]
+    myLength = len(data["you"]["body"])
+    myID=data["you"]["id"]
+    my_info = {'id':myID, 'health':myHealth, 'length':myLength}
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
-    bodys=[]
-    for snake in snakes:
-        for body in snake['body']:
-            bodys.append(body)
+    parts, li_otherSnake = parts_calculation(snakes, foods, my_info)
 
-    prev_dir = prev(data["you"]["body"][0],data["you"]["body"][1])
-    cur_dir = prev_dir
-    length = len(data["you"]["body"])
-    starve=False
+    print("turn :"+str(data['turn']))
+    move = checker_floodfill(myHead, parts, foods, my_info, li_otherSnake)
 
-    if (myHealth <= 50) or length<12:
-        pos = findFood(foods, myHead)
-        starve=True
-        if (prev_dir == 0 or prev_dir == 1):
-            if (pos["x"]-myHead["x"] < 0):
-                cur_dir = 2
-            elif (pos["x"]-myHead["x"] > 0):
-                cur_dir = 3
-            else:
-                cur_dir=prev_dir
-        else:
-            if (pos["y"]-myHead["y"] < 0):
-                cur_dir = 0
-            elif (pos["y"]-myHead["y"] > 0):
-                cur_dir = 1
-            else:
-                cur_dir=prev_dir
-    else:
-        starve=False
-
-    if (starve):
-        cur_dir=checkCollision(bodys,cur_dir,myHead,prev_dir)
-    else:
-        print("meep")
-        cur_dir = threeDirChecker(bodys,prev_dir,myHead)
-    
-
-    move = directions[cur_dir]
-    print(prev_dir)
-    print(move)
-    prev_dir = cur_dir
-    print(prev_dir)
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
     shout = "I am a python snake!"
@@ -131,190 +89,322 @@ def move():
         body=json.dumps(response),
     )
 
-def prev(cur_Head, prev_Head):
-    if (cur_Head["x"]<prev_Head["x"]):
-        #return left
-        return 2
-    elif (cur_Head["x"]>prev_Head["x"]):
-        #return right
-        return 3
-    elif (cur_Head["y"]<prev_Head["y"]):
-        #return up
-        return 0
-    elif (cur_Head["y"]>prev_Head["y"]):
-        #return down
-        return 1
-    else :
-        return random.choice([0,1,2,3])
 
+def parts_calculation(snakes, foods, my_info):
+    li_part = []
+    li_partE = []
+    li_otherSnake = []
+    for snake in snakes:
+        for body in snake['body']:
+            li_part.append(body)
+            li_partE.append(body)
 
-def findFood(foods, head_pos):
-    x = head_pos["x"]
-    y = head_pos["y"]
+    for snake in snakes:
+        otherHead=snake['body'][0]
+        otherPrev=snake['body'][1]
+        li_other=[otherHead,otherPrev]
+        li_heads=[  {"x": otherHead["x"], "y": otherHead["y"]-1},{"x": otherHead["x"], "y": otherHead["y"]+1},\
+                    {"x": otherHead["x"]-1, "y": otherHead["y"]},{"x": otherHead["x"]+1, "y": otherHead["y"]}]
+        if not nearFood(li_heads,foods):
+            # remove actual tails
+            li_part.remove(snake['body'][len(snake['body'])-1])
+        if (len(snake['body'])>=my_info['length']) and (snake["id"]!=my_info["id"]) :
+            # add predict heads
+            li_part.append(li_heads[0])
+            li_part.append(li_heads[1])
+            li_part.append(li_heads[2])
+            li_part.append(li_heads[3])
+            li_otherSnake.append(li_other)
+            # remove that food from list
+            for head in li_heads:
+                if head in foods:
+                    foods.remove(head)
+    return [li_part, li_partE], li_otherSnake
 
-    lowest_index = 0
+def matrix_list(row, column, parts, food):
+    list=[]
+    for r in range(row):
+        rr=[]
+        for c in range(column):
+            if {"x": r, "y": c} not in parts:
+                cc=["E"]
+            if {"x": c, "y": r} == food:
+                cc=["E"]
+            if {"x": r, "y": c} in parts:
+                cc=["S"]
+            rr.append(cc)
+        list.append(rr)
+    return list
 
-    for i in range(len(foods)-1):
-        if abs(foods[i]["x"]-x)+abs(foods[i]["y"]-y) < abs(foods[lowest_index]["x"]-x)+abs(foods[lowest_index]["y"]-y):
-            lowest_index = i
+def isValid(row, col):
+    return (row >= 0) and (row < board_height) and (col >= 0) and (col < board_width) 
 
-    pos = {"x": foods[lowest_index]["x"], "y": foods[lowest_index]["y"]}
+def shortest_step(start_pt, parts, end_pt):
+    global start_x, start_y, end_x, end_y
+    R, C = board_height, board_width
+    rowNum = [-1, 0, 0, 1] 
+    colNum = [0, -1, 1, 0] 
+    mat = matrix_list(R, C, parts, end_pt)
+    count=0
+    visted = []
+    q = []
+    d={}
+    path=[]
 
-    return pos
+    visted.append([start_pt['x'],start_pt['y']]) 
+    q.append([[start_pt['x'],start_pt['y']],0])
+    
+    while (len(q) != 0):
+        curr = q[0] 
+        pt = [curr[0][0],curr[0][1]] 
+  
+        if ((pt[0] == end_pt['x']) and (pt[1] == end_pt['y'])):
+            x = pt[0]
+            y = pt[1]
+            dx, dy = d[x, y]
+            if (dx == start_pt['x']) and (dy == start_pt['y']):
+                path.append([x,y])
+                count+=1
+                return count, path[0]
 
+            while not(x == start_pt['x']) or not(y == start_pt['y']):    # stop loop when current cells == start cell
+                x, y = d[x, y]
+                path.append([x,y])
+                count+=1
 
-def checkSolid(bodys, cur_dir, myHead):
-    #O(n)
-    if cur_dir == 0:
-        if (myHead["y"]-1 < 0) or ({"x": myHead["x"], "y": myHead["y"]-1} in bodys):
-            return True
-    if cur_dir == 1:
-        if (myHead["y"]+1 >= board_height) or ({"x": myHead["x"], "y": myHead["y"]+1} in bodys):
-            return True
-    if cur_dir == 2:
-        if (myHead["x"]-1 < 0) or ({"x": myHead["x"]-1, "y": myHead["y"]} in bodys):
-            return True
-    if cur_dir == 3:
-        if (myHead["x"]+1 >= board_width) or ({"x": myHead["x"]+1, "y": myHead["y"]} in bodys):
+            return count, path[len(path)-2]
+
+        q.pop(0); 
+
+        for i in range(4):
+            row = pt[0] + rowNum[i]; 
+            col = pt[1] + colNum[i]; 
+            if (isValid(row, col)) and (mat[row][col] == ["E"]) and ([row,col] not in visted): 
+                visted.append([row,col])
+                q.append([[row, col],curr[1] + 1])
+                d[row,col]=[pt[0],pt[1]]
+
+    return -1, [-1,-1]; 
+ 
+def sorting(val):
+    return val[0]
+
+def nearFood(li_heads,foods):
+    for head in li_heads:
+        if head in foods:
             return True
     return False
 
+def locateFood(foods, head_pos, otherSnake):
+    x = head_pos["x"]
+    y = head_pos["y"]
+    lowest_index = 0
+    # comparing the shortest distance to food
+    for i in range(len(foods)-1):
+        for j in otherSnake:
+            if abs(foods[i]["x"]-x)+abs(foods[i]["y"]-y) < abs(foods[lowest_index]["x"]-x)+abs(foods[lowest_index]["y"]-y):
+                lowest_index = i
+    # return position of the nearest food
+    return {"x": foods[lowest_index]["x"], "y": foods[lowest_index]["y"]}
 
-def checkCollision(bodys, cur_dir, myHead,prev_dir):
-    up = 0
-    down = 1
-    left = 2
-    right = 3
-    temp = cur_dir
+def gotoFood(foods, myHead, otherSnake):
+    food_pos = locateFood(foods, myHead, otherSnake)
+    result=[]
+    if (food_pos["x"]-myHead["x"] < 0):
+        result.append('left')
+    elif (food_pos["x"]-myHead["x"] > 0):
+        result.append('right')
+    if (food_pos["y"]-myHead["y"] < 0):
+        result.append('up')
+    elif (food_pos["y"]-myHead["y"] > 0):
+        result.append('down')
+    return result
 
-    """
-    old checker
-    """
-    if checkSolid(bodys, cur_dir, myHead):
-        temp=threeDirChecker(bodys,cur_dir,myHead)
-    if (temp == 0 and prev_dir == 1) or (temp == 1 and prev_dir == 0):
-        if not(checkSolid(bodys, left, myHead) and prev_dir != right):
-            temp = left
-        elif not(checkSolid(bodys, right, myHead) and prev_dir != left):
-            temp = right
-    elif (temp == 2 and prev_dir == 3) or (temp == 3 and prev_dir == 2):
-        if not(checkSolid(bodys, up, myHead) and prev_dir != down):
-            temp = up
-        elif not(checkSolid(bodys, down, myHead) and prev_dir != up):
-            temp = down
-    return temp
+def gotoLoc(pos, myHead):
+    if (pos[0]-myHead["x"] < 0):
+        return'left'
+    elif (pos[0]-myHead["x"] > 0):
+        return'right'
+    if (pos[1]-myHead["y"] < 0):
+        return'up'
+    elif (pos[1]-myHead["y"] > 0):
+        return'down'
 
+def aStar_switch(mx, my_info):
+    if mx<my_info['length']+5:
+        return False
+    return True
 
+def floodcount(myHead, parts):
+    table={'up':0, 'down':0, 'left':0, 'right':0}
+    # start floodfill with position(after) and counter(0)
+    up = rc_floodfill(parts.copy(), {"x": myHead["x"], "y": myHead["y"]-1})
+    down = rc_floodfill(parts.copy(), {"x": myHead["x"], "y": myHead["y"]+1})
+    left = rc_floodfill(parts.copy(), {"x": myHead["x"]-1, "y": myHead["y"]})
+    right = rc_floodfill(parts.copy(), {"x": myHead["x"]+1, "y": myHead["y"]})
+    result_mx = []
+    mx = max([up, down, left, right])
+    # count how many max
+    for i, j in enumerate([up, down, left, right]):
+        if j == mx:
+            result_mx.append(i)
+            if i==0:
+                table['up']=mx
+            if i==1:
+                table['down']=mx
+            if i==2:
+                table['left']=mx
+            if i==3:
+                table['right']=mx
+    # TODO: debug prints
+    print([up, down, left, right])
+    print(result_mx)
+    return result_mx, table, mx
 
+def prev_dirCalc(head, prev):
+    if head["x"]>prev["x"]:
+        return 'left'
+    if head["x"]<prev["x"]:
+        return 'right'
+    if head["y"]>prev["y"]:
+        return 'up'
+    if head["y"]<prev["y"]:
+        return 'down'
 
-def threeDirChecker(bodys, cur_dir, myHead):
-    """
-    3 dir checker
-    """
-    first = 0
-    second = 0
-    third = 0
-    # find the 3 dir
-    if cur_dir == 0 or cur_dir == 1:
-        # check possibility of left and right
-        first_dir = cur_dir
-        second_dir = 2
-        third_dir = 3
-        if cur_dir == 0:
-            if not(checkSolid(bodys, cur_dir, myHead)):
-                first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]-1})
-                print("first :"+str(first)+", first_dir "+str(first_dir))
-        elif cur_dir == 1:
-            if not(checkSolid(bodys, cur_dir, myHead)):
-                first = countEmpty(bodys, cur_dir, {"x": myHead["x"], "y": myHead["y"]+1})
-                print("first :"+str(first)+", first_dir "+str(first_dir))
-        if not (checkSolid(bodys, second_dir, myHead)):
-            second = countEmpty(bodys, second_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
-            second_dict = {"x": myHead["x"]-1, "y": myHead["y"]}
-            print("second :"+str(second)+", second_dir "+str(second_dir))
-        if not (checkSolid(bodys, third_dir, myHead)):
-            third = countEmpty(bodys, third_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
-            third_dict = {"x": myHead["x"]+1, "y": myHead["y"]}
-            print("third :"+str(third)+", third_dir "+str(third_dir))
+def nxtCalc(myHead, nxt_coord):
+    if nxt_coord==0:
+        return {"x": myHead["x"], "y": myHead["y"]-1}
+    if nxt_coord==1:
+        return {"x": myHead["x"], "y": myHead["y"]+1}
+    if nxt_coord==2:
+        return {"x": myHead["x"]-1, "y": myHead["y"]}
+    if nxt_coord==3:
+        return {"x": myHead["x"]+1, "y": myHead["y"]}
 
-    elif cur_dir == 2 or cur_dir == 3:
-        # check possiblity of up and down
-        first_dir = cur_dir
-        second_dir = 0
-        third_dir = 1
-        if cur_dir == 2:
-            if not(checkSolid(bodys, cur_dir, myHead)):
-                first = countEmpty(bodys, cur_dir, {"x": myHead["x"]-1, "y": myHead["y"]})
-                print("first :"+str(first)+", first_dir "+str(first_dir))
-        elif cur_dir == 3:
-            if not(checkSolid(bodys, cur_dir, myHead)):
-                first = countEmpty(bodys, cur_dir, {"x": myHead["x"]+1, "y": myHead["y"]})
-                print("first :"+str(first)+", first_dir "+str(first_dir))
-        if not (checkSolid(bodys, second_dir, myHead)):
-            second = countEmpty(bodys, second_dir, {"x": myHead["x"], "y": myHead["y"]-1})
-            second_dict = {"x": myHead["x"], "y": myHead["y"]-1}
-            print("second :"+str(second)+", second_dir "+str(second_dir))
-        if not (checkSolid(bodys, third_dir, myHead)):
-            third = countEmpty(bodys, third_dir, {"x": myHead["x"], "y": myHead["y"]+1})
-            third_dict = {"x": myHead["x"], "y": myHead["y"]+1}
-            print("third :"+str(third)+", third_dir "+str(third_dir))
-    #test check
-    # print("first "+ str(first)+"first_dir"+ str(first_dir))
-    # print("second "+ str(second)+"second_dir"+ str(second_dir))
-    # print("third "+ str(third)+"third_dir"+ str(third_dir))
+def expand_predArea(otherSnake, val, parts):
+    balancer=0
+    while (val>=0) and len(otherSnake)!=0:
+        for otherHead, otherPrev in otherSnake:
+            parts.append({"x": otherHead["x"]+val, "y": otherHead["y"]+balancer})
+            parts.append({"x": otherHead["x"]-val, "y": otherHead["y"]+balancer})
+            parts.append({"x": otherHead["x"]-val, "y": otherHead["y"]-balancer})
+            parts.append({"x": otherHead["x"]+val, "y": otherHead["y"]-balancer})
+            val-=1
+            balancer+=1
+            if (val==0):
+                #get rid the extra spot
+                prev=prev_dirCalc(otherHead,otherPrev)
+                if (prev=="left") and {"x": otherHead["x"]+balancer, "y": otherHead["y"]-val} in parts:
+                    parts.remove({"x": otherHead["x"]+balancer, "y": otherHead["y"]-val})
+                if (prev=="right") and {"x": otherHead["x"]-balancer, "y": otherHead["y"]-val} in parts:
+                    parts.remove({"x": otherHead["x"]-balancer, "y": otherHead["y"]-val})
+                if (prev=="up") and {"x": otherHead["x"]+val, "y": otherHead["y"]+balancer} in parts:
+                    parts.remove({"x": otherHead["x"]+val, "y": otherHead["y"]+balancer})
+                if (prev=="down") and {"x": otherHead["x"]+val, "y": otherHead["y"]-balancer} in parts:
+                    parts.remove({"x": otherHead["x"]+val, "y": otherHead["y"]-balancer})
 
+def food_order(myHead, otherSnake, foods, partE):
+     # Pre
+    Heads=[myHead]
+    for i,j in otherSnake:
+        Heads.append(i)
+    # heat
+    li_step=[]
+    for food in foods:
+        step=[]
+        path=[]
+        for head in Heads:
+            s, p = shortest_step(head, partE, food)
+            step.append(s)
+            path.append(p)
+        li_step.append([step, path, food])
+    # eat
+    pathing_slot=[]
+    for i in li_step:
+        steps=i[0]
+        nxt=i[1][0]
+        food=i[2]
+        if not(steps[0]==-1) and (steps[0]==min(j for j in steps if j >= 0)):
+            pathing_slot.append((steps[0],nxt))
+    # sort
+    if not(len(pathing_slot)==0):
+        pathing_slot.sort(key = sorting)
+        # translate
+        form=[]
+        for d in pathing_slot:
+            form.append(gotoLoc(d[1],myHead))
+        #TODO
+        return form
 
-    # compare
-    if (first==second==third==1 and prev_dir!=cur_dir):
-        return threeDirChecker(bodys,prev_dir,myHead)
-    if first == second == third:
-        return first_dir
-    elif first >= second and first >= third:
-        return first_dir
-    elif second > third:
-        print("turn :"+str(second_dir))
-        return second_dir
-    elif third > second:
-        print("turn:"+str(third_dir))
-        return third_dir
-    elif second == third:
-        #do check more
-        s=random.choice([second_dir, third_dir])
-        print("luck :"+str(s))
-        return s
+def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake):
+    parts=li_parts[0]
+    partE=li_parts[1]
+    # get survival path
+    expand=1
+    li_Spath, table, mx = floodcount(myHead, parts)
 
+    highest = max(table.values())
+    li_Spath.clear()
+    for k,v in table.items():
+        if v==highest:
+            li_Spath.append(k)
+    # print("final result")
+    # print(li_Spath)
+    # print(highest)
+    
+    # go for food path
+    li_Fpath=[]
+    li_Fpath.append(food_order(myHead, otherSnake, foods, partE))
+    print(li_Fpath)
+    if not(li_Fpath[0]==None):
+        for path_set in li_Fpath:
+            for path in path_set:
+                if path in li_Spath:
+                    print(li_Fpath)
+                    print(path)
+                    return path
 
+    
+    # if len(result)>1:
+    #     Heads=[myHead]
+    #     for i,j in otherSnake:
+    #         Heads.append(i)
+    #     for food in foods:
+    #         shortest_step(Heads, parts, foods)
+        # temp_food=[]
+        
+        # food_move = gotoFood(foods, myHead, otherSnake)
+        # for moves in food_move:
+        #     if moves in li_Spath:
+        #         temp_food.append(moves)
+        # # see possible to block other by results choice
+        # # temp_counter=counter_move(snakes, myHead)
+        # # finalize the info and pick one direaction
+        # for move in li_Spath:
+        #     if move in temp_food:
+        #         print(move)
+        #         return move
+    print(li_Spath[0])
+    return li_Spath[0]  # , active_AStar
 
-def countEmpty(bodys, cur_dir, myHead):
-    count = 4
-    if cur_dir == 0 or cur_dir == 1:
-        print("checking L and R is it solid")
-        if checkSolid(bodys,2 , myHead):
-            print(str(cur_dir))
-            print("left empty")
-            count-=1
-            print("solid for second dir")
-        if checkSolid(bodys,3,myHead):
-            print(str(cur_dir))
-            print("right empty")
-            count-=1
-            print("solid for third dir")
-    if cur_dir == 2 or cur_dir == 3:
-        print("checking up and down is it solid")
-        if checkSolid(bodys,0 , myHead):
-            print(str(cur_dir))
-            print("up empty")
-            count-=1
-            print("solid for second dir")
-        if checkSolid(bodys,1,myHead):
-            print(str(cur_dir))
-            print("down empty")
-            count-=1
-            print("solid for third dir")
-    if checkSolid(bodys,cur_dir,myHead):
-            count-=1
-            print("solid ahead"+str(cur_dir))
-    return count
+def rc_floodfill(parts, position):
+    count = 0
+    # count how many block after 'this direaction'
+    if not(check_empty(parts, position)):
+        return count
+    parts.append(position)
+    count += 1
+    up = rc_floodfill(parts, {"x": position["x"], "y": position["y"]-1})
+    down = rc_floodfill(parts, {"x": position["x"], "y": position["y"]+1})
+    left = rc_floodfill(parts, {"x": position["x"]-1, "y": position["y"]})
+    right = rc_floodfill(parts, {"x": position["x"]+1, "y": position["y"]})
+
+    return count + up + down + left + right
+
+def check_empty(parts, position):
+    if (position in parts) or (0 > position['x']) or (position['x'] > board_width-1) or (0 > position['y'])or(position['y'] > board_height-1):
+        return False
+    return True
 
 
 @bottle.post("/end")
