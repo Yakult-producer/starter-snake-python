@@ -66,11 +66,15 @@ def move():
 
     myHead = {"x": data["you"]["body"][0]['x'],
               "y": data["you"]["body"][0]['y']}
+    myPrev = {"x": data["you"]["body"][1]['x'],
+              "y": data["you"]["body"][1]['y']}
+    prev_dir = inverse_dir(prev_dirCalc(myHead, myPrev))
+
 
     myHealth = data["you"]["health"]
     myLength = len(data["you"]["body"])
     myID=data["you"]["id"]
-    my_info = {'id':myID, 'health':myHealth, 'length':myLength}
+    my_info = {'id':myID, 'health':myHealth, 'length':myLength, 'prev':prev_dir}
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
     parts, li_otherSnake, li_HLSnake = parts_calculation(snakes, foods, my_info)
@@ -89,6 +93,16 @@ def move():
         body=json.dumps(response),
     )
 
+
+def inverse_dir(dir):
+    if dir=='up':
+        return 'down'
+    if dir=='down':
+        return 'up'
+    if dir=='left':
+        return 'right'
+    if dir=='right':
+        return 'left'
 
 def parts_calculation(snakes, foods, my_info):
     li_part = []
@@ -110,7 +124,7 @@ def parts_calculation(snakes, foods, my_info):
         #     # remove actual tails
         li_part.remove(snake['body'][len(snake['body'])-1])
         li_partE.remove(snake['body'][len(snake['body'])-1])
-        if (len(snake['body'])>=my_info['length']) and (snake["id"]!=my_info["id"]) :
+        if (len(snake['body'])>=(my_info['length']-5)) and (snake["id"]!=my_info["id"]) :
             # add predict heads
             li_part.append(li_heads[0])
             li_part.append(li_heads[1])
@@ -380,7 +394,7 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                     table['right']+=temp_table[i]
         print(table)                
     
-
+    print('table: ', table)
     # go for food path
     li_Fpath=[]
     li_Fpath.append(food_order(myHead, otherSnake, foods, partE))
@@ -406,11 +420,13 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                     return path[2]
 
 
-    if max(li_Spath)==0:
-        if max(li_SpathE)>my_info['length']:
-            return li_SpathE
-        #TODO aplly chase tail
-        #else:
+    if (my_info['prev'] in li_Spath):
+        print('incoming prev: ',my_info['prev'])
+        return my_info['prev']
+    if max(li_SpathE)>my_info['length']:
+        return li_SpathE
+        # #TODO aplly chase tail
+        # else:
 
     print(li_Spath[0])
     return li_Spath[0]  # , active_AStar
