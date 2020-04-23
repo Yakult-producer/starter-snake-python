@@ -73,10 +73,10 @@ def move():
     my_info = {'id':myID, 'health':myHealth, 'length':myLength}
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
-    parts, li_otherSnake = parts_calculation(snakes, foods, my_info)
+    parts, li_otherSnake, li_HLSnake = parts_calculation(snakes, foods, my_info)
 
     print("turn :"+str(data['turn']))
-    move = checker_floodfill(myHead, parts, foods, my_info, li_otherSnake)
+    move = checker_floodfill(myHead, parts, foods, my_info, li_otherSnake, li_HLSnake)
 
     # Shouts are messages sent to all the other snakes in the game.
     # Shouts are not displayed on the game board.
@@ -94,6 +94,7 @@ def parts_calculation(snakes, foods, my_info):
     li_part = []
     li_partE = []
     li_otherSnake = []
+    li_HLSnake = []
     for snake in snakes:
         for body in snake['body']:
             li_part.append(body)
@@ -107,7 +108,8 @@ def parts_calculation(snakes, foods, my_info):
                     {"x": otherHead["x"]-1, "y": otherHead["y"]},{"x": otherHead["x"]+1, "y": otherHead["y"]}]
         # if not nearFood(li_heads,foods):
         #     # remove actual tails
-        #     li_part.remove(snake['body'][len(snake['body'])-1])
+        li_part.remove(snake['body'][len(snake['body'])-1])
+        li_partE.remove(snake['body'][len(snake['body'])-1])
         if (len(snake['body'])>=my_info['length']) and (snake["id"]!=my_info["id"]) :
             # add predict heads
             li_part.append(li_heads[0])
@@ -119,7 +121,9 @@ def parts_calculation(snakes, foods, my_info):
             for head in li_heads:
                 if head in foods:
                     foods.remove(head)
-    return [li_part, li_partE], li_otherSnake
+        if ((len(snake['body'])<my_info['length']) and (snake["id"]!=my_info["id"])):
+            li_HLSnake.append([otherHead, otherPrev])
+    return [li_part, li_partE], li_otherSnake, li_HLSnake
 
 def matrix_list(row, column, parts, food):
     list=[]
@@ -257,8 +261,8 @@ def floodcount(myHead, parts):
             if i==3:
                 table['right']=mx
     # TODO: debug prints
-    print([up, down, left, right])
-    print(result_mx)
+    # print([up, down, left, right])
+    # print(result_mx)
     return result_mx, table, mx
 
 def prev_dirCalc(head, prev):
@@ -336,10 +340,11 @@ def food_order(myHead, otherSnake, foods, partE):
         #TODO
         return form
 
-def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake):
+def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
     parts=li_parts[0]
     partE=li_parts[1]
     # get survival path
+    li_SpathE, tableE, mxE = floodcount(myHead, partE)
     expand=1
     li_Spath, table, mx = floodcount(myHead, parts)
 
@@ -350,11 +355,11 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake):
             li_Spath.append(k)
 
     # decision for more than one max
-    if len(li_Spath) > 1 and mx!=0:
-        expand_predArea(otherSnake, expand, parts)
+    if len(li_Spath) > 0 and mx!=0:
+        expand_predArea(HLSnake, expand, parts)
         expand+=1
         print("second checker")
-        expand_predArea(otherSnake, expand, parts)
+        expand_predArea(HLSnake, expand, parts)
         expand+=1
         for direaction in li_Spath:
             virtualHead = nxtCalc(myHead,direaction)
@@ -392,6 +397,12 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake):
                     print(path)
                     return path
 
+
+    if max(li_Spath)==0:
+        if max(li_SpathE)>my_info['length']:
+            return li_SpathE
+        #TODO aplly chase tail
+        #else:
 
     print(li_Spath[0])
     return li_Spath[0]  # , active_AStar
