@@ -124,7 +124,7 @@ def parts_calculation(snakes, foods, my_info):
         #     # remove actual tails
         li_part.remove(snake['body'][len(snake['body'])-1])
         li_partE.remove(snake['body'][len(snake['body'])-1])
-        if (len(snake['body'])>=(my_info['length'])) and (snake["id"]!=my_info["id"]) :
+        if (len(snake['body'])>=(my_info['length']-5)) and (snake["id"]!=my_info["id"]) :
             # add predict heads
             li_part.append(li_heads[0])
             li_part.append(li_heads[1])
@@ -406,24 +406,7 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                 indexing=len(li_Fpath[0])-li_Fpath[0].index(i)
                 o_Spath.append((table[i],indexing,i))
     o_Spath.sort(key = operator.itemgetter(0, 1),  reverse=True)
-    # TODO side esc system
-    if myHead['x']==0 or myHead['x']==board_width:
-        print('esc in')
-        if 'right' in li_Spath:
-            print('esc')
-            return 'right'
-        if 'left' in li_Spath:
-            print('esc')
-            return 'left'
-    if myHead['y']==0 or myHead['y']==board_height:
-        print('esc in')
-        if 'up' in li_Spath:
-            print('esc')
-            return 'up'
-        if 'down' in li_Spath:
-            print('esc')
-            return 'down'
-
+    # TODO
     print(o_Spath)
     if not(li_Fpath[0]==None):
         for path_set in li_Fpath:
@@ -434,6 +417,7 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                     print(o_Spath)
                     print(li_Fpath)
                     print(path)
+                    
                     return path[2]
 
 
