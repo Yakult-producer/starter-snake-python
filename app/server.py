@@ -105,9 +105,9 @@ def parts_calculation(snakes, foods, my_info):
         li_other=[otherHead,otherPrev]
         li_heads=[  {"x": otherHead["x"], "y": otherHead["y"]-1},{"x": otherHead["x"], "y": otherHead["y"]+1},\
                     {"x": otherHead["x"]-1, "y": otherHead["y"]},{"x": otherHead["x"]+1, "y": otherHead["y"]}]
-        if not nearFood(li_heads,foods):
-            # remove actual tails
-            li_part.remove(snake['body'][len(snake['body'])-1])
+        # if not nearFood(li_heads,foods):
+        #     # remove actual tails
+        #     li_part.remove(snake['body'][len(snake['body'])-1])
         if (len(snake['body'])>=my_info['length']) and (snake["id"]!=my_info["id"]) :
             # add predict heads
             li_part.append(li_heads[0])
@@ -272,13 +272,13 @@ def prev_dirCalc(head, prev):
         return 'down'
 
 def nxtCalc(myHead, nxt_coord):
-    if nxt_coord==0:
+    if nxt_coord=="up":
         return {"x": myHead["x"], "y": myHead["y"]-1}
-    if nxt_coord==1:
+    if nxt_coord=="down":
         return {"x": myHead["x"], "y": myHead["y"]+1}
-    if nxt_coord==2:
+    if nxt_coord=="left":
         return {"x": myHead["x"]-1, "y": myHead["y"]}
-    if nxt_coord==3:
+    if nxt_coord=="right":
         return {"x": myHead["x"]+1, "y": myHead["y"]}
 
 def expand_predArea(otherSnake, val, parts):
@@ -348,44 +348,54 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake):
     for k,v in table.items():
         if v==highest:
             li_Spath.append(k)
-    # print("final result")
-    # print(li_Spath)
-    # print(highest)
+
+    # decision for more than one max
+    if len(li_Spath) > 1 and mx!=0:
+        expand_predArea(otherSnake, expand, parts)
+        expand+=1
+        print("second checker")
+        expand_predArea(otherSnake, expand, parts)
+        expand+=1
+        for direaction in li_Spath:
+            virtualHead = nxtCalc(myHead,direaction)
+            if not(virtualHead==None):
+                print("VH")
+                temp_result, temp_table, temp_mx = floodcount(virtualHead, parts)
+                for i in temp_table:
+                    if direaction=='up':
+                        table['up']+=temp_table[i]
+                    if direaction=='down':
+                        table['down']+=temp_table[i]
+                    if direaction=='left':
+                        table['left']+=temp_table[i]
+                    if direaction=='right':
+                        table['right']+=temp_table[i]
+        print(table)                
+    o_Spath=[]
+    for i in table:
+        o_Spath.append((table[i],i))
+    o_Spath.sort(key = sorting, reverse=True)
     
+    
+
     # go for food path
     li_Fpath=[]
     li_Fpath.append(food_order(myHead, otherSnake, foods, partE))
-    print(li_Fpath)
+    
     if not(li_Fpath[0]==None):
         for path_set in li_Fpath:
             for path in path_set:
-                if path in li_Spath:
+                print(path)
+                if len(o_Spath)>0 and path in (j[1] for j in o_Spath if j[0]>=my_info['length']):
+                    print(o_Spath)
                     print(li_Fpath)
                     print(path)
                     return path
 
-    
-    # if len(result)>1:
-    #     Heads=[myHead]
-    #     for i,j in otherSnake:
-    #         Heads.append(i)
-    #     for food in foods:
-    #         shortest_step(Heads, parts, foods)
-        # temp_food=[]
-        
-        # food_move = gotoFood(foods, myHead, otherSnake)
-        # for moves in food_move:
-        #     if moves in li_Spath:
-        #         temp_food.append(moves)
-        # # see possible to block other by results choice
-        # # temp_counter=counter_move(snakes, myHead)
-        # # finalize the info and pick one direaction
-        # for move in li_Spath:
-        #     if move in temp_food:
-        #         print(move)
-        #         return move
+
     print(li_Spath[0])
     return li_Spath[0]  # , active_AStar
+
 
 def rc_floodfill(parts, position):
     count = 0
