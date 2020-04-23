@@ -124,7 +124,7 @@ def parts_calculation(snakes, foods, my_info):
         #     # remove actual tails
         li_part.remove(snake['body'][len(snake['body'])-1])
         li_partE.remove(snake['body'][len(snake['body'])-1])
-        if (len(snake['body'])>=(my_info['length']-5)) and (snake["id"]!=my_info["id"]) :
+        if (len(snake['body'])>=(my_info['length'])) and (snake["id"]!=my_info["id"]) :
             # add predict heads
             li_part.append(li_heads[0])
             li_part.append(li_heads[1])
