@@ -4,8 +4,8 @@ import random
 
 import bottle
 from bottle import HTTPResponse
-from collections import deque
-from queue import Queue
+import operator
+
 
 prev_dir = random.choice([0, 1, 2, 3])
 
@@ -193,6 +193,9 @@ def shortest_step(start_pt, parts, end_pt):
 def sorting(val):
     return val[0]
 
+def sorting1(val):
+    return val[1]
+
 def nearFood(li_heads,foods):
     for head in li_heads:
         if head in foods:
@@ -366,36 +369,41 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
             if not(virtualHead==None):
                 print("VH")
                 temp_result, temp_table, temp_mx = floodcount(virtualHead, parts)
-                for i in temp_table:
-                    if direaction=='up':
-                        table['up']+=temp_table[i]
-                    if direaction=='down':
-                        table['down']+=temp_table[i]
-                    if direaction=='left':
+                i = max(temp_table.items(), key=operator.itemgetter(1))[0]
+                if direaction=='up':
+                    table['up']+=temp_table[i]
+                if direaction=='down':
+                    table['down']+=temp_table[i]
+                if direaction=='left':
                         table['left']+=temp_table[i]
-                    if direaction=='right':
-                        table['right']+=temp_table[i]
+                if direaction=='right':
+                    table['right']+=temp_table[i]
         print(table)                
-    o_Spath=[]
-    for i in table:
-        o_Spath.append((table[i],i))
-    o_Spath.sort(key = sorting, reverse=True)
-    
     
 
     # go for food path
     li_Fpath=[]
     li_Fpath.append(food_order(myHead, otherSnake, foods, partE))
-    
+
+    o_Spath=[]
+    for i in table:
+        if not(li_Fpath==[None]):
+            if i in li_Fpath[0]:
+                indexing=len(li_Fpath[0])-li_Fpath[0].index(i)
+                o_Spath.append((table[i],indexing,i))
+    o_Spath.sort(key = operator.itemgetter(0, 1),  reverse=True)
+    # TODO
+    print(o_Spath)
     if not(li_Fpath[0]==None):
         for path_set in li_Fpath:
-            for path in path_set:
-                print(path)
-                if len(o_Spath)>0 and path in (j[1] for j in o_Spath if j[0]>=my_info['length']):
+
+            for path in o_Spath:
+                print("path",path[2]," pathset", path_set)
+                if path[0]>=my_info['length'] and path[2] in path_set:
                     print(o_Spath)
                     print(li_Fpath)
                     print(path)
-                    return path
+                    return path[2]
 
 
     if max(li_Spath)==0:
