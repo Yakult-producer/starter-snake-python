@@ -406,7 +406,24 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                 indexing=len(li_Fpath[0])-li_Fpath[0].index(i)
                 o_Spath.append((table[i],indexing,i))
     o_Spath.sort(key = operator.itemgetter(0, 1),  reverse=True)
-    # TODO
+    # TODO side esc system
+    if myHead['x']==0 or myHead['x']==board_width:
+        print('esc in')
+        if 'right' in li_Spath:
+            print('esc')
+            return 'right'
+        if 'left' in li_Spath:
+            print('esc')
+            return 'left'
+    if myHead['y']==0 or myHead['y']==board_height:
+        print('esc in')
+        if 'up' in li_Spath:
+            print('esc')
+            return 'up'
+        if 'down' in li_Spath:
+            print('esc')
+            return 'down'
+
     print(o_Spath)
     if not(li_Fpath[0]==None):
         for path_set in li_Fpath:
