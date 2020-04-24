@@ -5,6 +5,7 @@ import random
 import bottle
 from bottle import HTTPResponse
 import operator
+import copy
 
 
 prev_dir = random.choice([0, 1, 2, 3])
@@ -66,14 +67,19 @@ def move():
 
     myHead = {"x": data["you"]["body"][0]['x'],
               "y": data["you"]["body"][0]['y']}
+    myPrev = {"x": data["you"]["body"][1]['x'],
+              "y": data["you"]["body"][1]['y']}
+    prev_dir = inverse_dir(prev_dirCalc(myHead, myPrev))
+
 
     myHealth = data["you"]["health"]
     myLength = len(data["you"]["body"])
     myID=data["you"]["id"]
-    my_info = {'id':myID, 'health':myHealth, 'length':myLength}
+    my_info = {'id':myID, 'health':myHealth, 'length':myLength, 'prev':prev_dir}
     foods = data["board"]["food"]
     snakes = data["board"]["snakes"]
     parts, li_otherSnake, li_HLSnake = parts_calculation(snakes, foods, my_info)
+    #partz = stupid_list(parts[1], snakes)
 
     print("turn :"+str(data['turn']))
     move = checker_floodfill(myHead, parts, foods, my_info, li_otherSnake, li_HLSnake)
@@ -90,27 +96,58 @@ def move():
     )
 
 
+def inverse_dir(dir):
+    if dir=='up':
+        return 'down'
+    if dir=='down':
+        return 'up'
+    if dir=='left':
+        return 'right'
+    if dir=='right':
+        return 'left'
+
+def stupid_list(snakes):   
+    list = snakes
+    cpy_list = []
+    for li in list:
+        d2 = copy.deepcopy(li)
+        cpy_list.append(d2)
+    for i in cpy_list:
+        i['step']=1
+    return cpy_list
+
 def parts_calculation(snakes, foods, my_info):
     li_part = []
     li_partE = []
+    li_partA =[]
     li_otherSnake = []
     li_HLSnake = []
     for snake in snakes:
+        i=0
         for body in snake['body']:
             li_part.append(body)
             li_partE.append(body)
+        for body in stupid_list(snake['body']):
+            body['step']=(len(snake['body'])-i)
+            li_partA.append(body)
+            i+=1
+
+    
 
     for snake in snakes:
         otherHead=snake['body'][0]
         otherPrev=snake['body'][1]
-        li_other=[otherHead,otherPrev]
+        otherTail=snake['body'][len(snake['body'])-1]
+
+        li_other=[otherHead,otherPrev,otherTail]
         li_heads=[  {"x": otherHead["x"], "y": otherHead["y"]-1},{"x": otherHead["x"], "y": otherHead["y"]+1},\
                     {"x": otherHead["x"]-1, "y": otherHead["y"]},{"x": otherHead["x"]+1, "y": otherHead["y"]}]
         # if not nearFood(li_heads,foods):
         #     # remove actual tails
         li_part.remove(snake['body'][len(snake['body'])-1])
         li_partE.remove(snake['body'][len(snake['body'])-1])
-        if (len(snake['body'])>=my_info['length']) and (snake["id"]!=my_info["id"]) :
+
+        if (len(snake['body'])>=(my_info['length'])) and (snake["id"]!=my_info["id"]) :
             # add predict heads
             li_part.append(li_heads[0])
             li_part.append(li_heads[1])
@@ -123,7 +160,7 @@ def parts_calculation(snakes, foods, my_info):
                     foods.remove(head)
         if ((len(snake['body'])<my_info['length']) and (snake["id"]!=my_info["id"])):
             li_HLSnake.append([otherHead, otherPrev])
-    return [li_part, li_partE], li_otherSnake, li_HLSnake
+    return [li_part, li_partE, li_partA], li_otherSnake, li_HLSnake
 
 def matrix_list(row, column, parts, food):
     list=[]
@@ -291,7 +328,7 @@ def nxtCalc(myHead, nxt_coord):
 def expand_predArea(otherSnake, val, parts):
     balancer=0
     while (val>=0) and len(otherSnake)!=0:
-        for otherHead, otherPrev in otherSnake:
+        for otherHead, otherPrev, otherTail in otherSnake:
             parts.append({"x": otherHead["x"]+val, "y": otherHead["y"]+balancer})
             parts.append({"x": otherHead["x"]-val, "y": otherHead["y"]+balancer})
             parts.append({"x": otherHead["x"]-val, "y": otherHead["y"]-balancer})
@@ -313,7 +350,7 @@ def expand_predArea(otherSnake, val, parts):
 def food_order(myHead, otherSnake, foods, partE):
      # Pre
     Heads=[myHead]
-    for i,j in otherSnake:
+    for i,j,k in otherSnake:
         Heads.append(i)
     # heat
     li_step=[]
@@ -331,38 +368,52 @@ def food_order(myHead, otherSnake, foods, partE):
         steps=i[0]
         nxt=i[1][0]
         food=i[2]
-        if not(steps[0]==-1) and (steps[0]==min(j for j in steps if j >= 0)):
-            pathing_slot.append((steps[0],nxt))
+        if not(steps[0]==-1) and (steps[0]==min(j for j in steps if j >= 0)) and not(steps[0]==(j for j in range(1, len(i)))):
+            pathing_slot.append((steps[0],nxt,food))
     # sort
     if not(len(pathing_slot)==0):
         pathing_slot.sort(key = sorting)
         # translate
         form=[]
         for d in pathing_slot:
-            form.append(gotoLoc(d[1],myHead))
+            form.append([gotoLoc(d[1],myHead),d[0],d[2]])
         #TODO
         return form
 
 def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
     parts=li_parts[0]
     partE=li_parts[1]
+    partA=li_parts[2]
     # get survival path
     li_SpathE, tableE, mxE = floodcount(myHead, partE)
     expand=1
     li_Spath, table, mx = floodcount(myHead, parts)
 
     highest = max(table.values())
+    # if highest<=my_info['length']:
+    #     for A in partA:
+    #         if A['step']<=highest:
+    #             temp_dic={'x':A['x'], 'y':A['y']}
+    #             if temp_dic in parts:
+    #                 parts.remove(temp_dic)
+    #     li_Spath, table, mx = floodcount(myHead, parts)
+    #     highest = max(table.values())
     li_Spath.clear()
     for k,v in table.items():
         if v==highest:
             li_Spath.append(k)
 
+    TEMPo_Spath=[]
+    for i in tableE:
+        TEMPo_Spath.append((table[i],i))
+    TEMPo_Spath.sort(key = operator.itemgetter(0, 1),  reverse=True)
+
     # decision for more than one max
     if len(li_Spath) > 0 and mx!=0:
-        expand_predArea(HLSnake, expand, parts)
+        expand_predArea(otherSnake, expand, parts)
         expand+=1
         print("second checker")
-        expand_predArea(HLSnake, expand, parts)
+        expand_predArea(otherSnake, expand, parts)
         expand+=1
         for direaction in li_Spath:
             virtualHead = nxtCalc(myHead,direaction)
@@ -380,7 +431,7 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                     table['right']+=temp_table[i]
         print(table)                
     
-
+    print('table: ', table)
     # go for food path
     li_Fpath=[]
     li_Fpath.append(food_order(myHead, otherSnake, foods, partE))
@@ -388,29 +439,69 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
     o_Spath=[]
     for i in table:
         if not(li_Fpath==[None]):
-            if i in li_Fpath[0]:
-                indexing=len(li_Fpath[0])-li_Fpath[0].index(i)
+            if i in li_Fpath[0][0]:
+                indexing=len(li_Fpath[0][0])-li_Fpath[0][0].index(i)
                 o_Spath.append((table[i],indexing,i))
+            else:
+                o_Spath.append((table[i],0,i))
     o_Spath.sort(key = operator.itemgetter(0, 1),  reverse=True)
     # TODO
+    print(o_Spath)
+    if myHead['x']==0 or myHead['x']==board_width-1:   
+        if 'right' in(j[2] for j in o_Spath if j[0] > 0) :
+            print('failure')
+            return 'right'
+        if 'left' in (j[2] for j in o_Spath if j[0] > 0):
+            print('failure')
+            return 'left'
+    if myHead['y']==0 or myHead['y']==board_height-1:
+        #print('failure')
+        if 'down' in (j[2] for j in o_Spath if j[0] > 0):
+            print('failure')
+            return 'down'
+        if 'up' in (j[2] for j in o_Spath if j[0] > 0):
+            print('failure')
+            return 'up'
+
     print(o_Spath)
     if not(li_Fpath[0]==None):
         for path_set in li_Fpath:
 
             for path in o_Spath:
-                print("path",path[2]," pathset", path_set)
-                if path[0]>=my_info['length'] and path[2] in path_set:
-                    print(o_Spath)
-                    print(li_Fpath)
-                    print(path)
+                print("path",path[2]," pathset", path_set[0][0])
+                if path[0]>=my_info['length'] and path[2] in path_set[0][0] :
+                    if not(path_set[0][2]['x']==0 or path_set[0][2]['x']==board_width-1 or path_set[0][2]['y']==0 or path_set[0][2]['y']==board_height-1):
+                        print(o_Spath)
+                        print(li_Fpath)
+                        print(path)                    
+                        return path[2]
+                    else:
+                        if path_set[0][1]<=3:
+                            return path[2]
+
+    li_path=[]
+    for i in otherSnake:
+        count, path = shortest_step(myHead, parts, i[2])
+        if count>0:
+            li_path.append([count, path])
+    li_path.sort()
+    if len(li_path)>0:
+        print("chase tail ", li_path)
+        for i in TEMPo_Spath:
+            if i in li_path:
+                return i
+    
+    if len(li_Spath)==4 and len(TEMPo_Spath)>0:
+        for path_set in li_Fpath:
+            for path in o_Spath:
+                if path[0]>=my_info['length'] and path[2] in path_set[0][0]:                
                     return path[2]
-
-
-    if max(li_Spath)==0:
-        if max(li_SpathE)>my_info['length']:
-            return li_SpathE
-        #TODO aplly chase tail
-        #else:
+        if prev_dir in (j[1] for j in TEMPo_Spath):
+            print('sad')
+            return prev_dir
+        else:
+            print('super sad')
+            return TEMPo_Spath[0][1]
 
     print(li_Spath[0])
     return li_Spath[0]  # , active_AStar
@@ -432,7 +523,7 @@ def rc_floodfill(parts, position):
 
 def check_empty(parts, position):
     if (position in parts) or (0 > position['x']) or (position['x'] > board_width-1) or (0 > position['y'])or(position['y'] > board_height-1):
-        return False
+            return False
     return True
 
 
