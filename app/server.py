@@ -476,7 +476,7 @@ def checker_floodfill(myHead, li_parts, foods, my_info, otherSnake, HLSnake):
                         print(path)                    
                         return path[2]
                     else:
-                        if path_set[0][1]<=2:
+                        if path_set[0][1]<=3:
                             return path[2]
 
     li_path=[]
